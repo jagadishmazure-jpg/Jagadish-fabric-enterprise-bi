@@ -131,7 +131,7 @@ python -m fabricbi.examples a2a
 ```text
 indexed: every docs/*.md section, 5 data product contracts, 8 measure definitions
 'How is average basket calculated?' -> top hit semantic-model/retail_sales.yaml (Measure Average Basket)
-'How fresh is the live store operations data supposed to be?' -> top hit docs/agent-interfaces.md (Run it locally)
+'How fresh is the live store operations data supposed to be?' -> top hit contracts/products/store-operations-live.yaml (Data product store-operations-live)
 'Who owns the loyalty members data product?' with clearance General: loyalty contract returned = False
 'Who owns the loyalty members data product?' with clearance Highly Confidential: loyalty contract returned = True
 ```
@@ -155,11 +155,14 @@ unknown caller -> 403 {'code': -32003, 'message': 'caller not allowed'}
 unknown tenant -> 403 {'code': -32003, 'message': 'tenant not allowed'}
 ```
 
-To use the servers by hand, build a lake first with `python scripts/demo.py`, then:
+To use the servers by hand, build a lake first with `python scripts/demo.py` (it writes
+`.onelake-demo/lake`), then point the servers at it:
 
 ```bash
-FABRICBI_SUBJECT=west.manager@fernhill.example python -m fabricbi.serve.mcp_server   # one JSON-RPC message per line on stdin
-PORT=8460 python -m fabricbi.serve.a2a                                               # card at http://127.0.0.1:8460/.well-known/agent-card.json
+export FABRICBI_LAKE=.onelake-demo/lake
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
+  | FABRICBI_SUBJECT=west.manager@fernhill.example python -m fabricbi.serve.mcp_server
+PORT=8460 python -m fabricbi.serve.a2a     # card at http://127.0.0.1:8460/.well-known/agent-card.json
 ```
 
 ## Tests and eval gates

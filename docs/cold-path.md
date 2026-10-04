@@ -154,7 +154,7 @@ def write_contracted(ctx: RunContext, name: str, df: pd.DataFrame, inputs: list[
 | Setting | Where | Default |
 |---|---|---|
 | Quarantine-rate gate | `quality.enforce(max_quarantine_rate=0.02)` | 2% per table (matches the `retail-sales` product's `max_quarantine_rate`) |
-| Lake location | `FABRICBI_LAKE` (`paths.lake_root()`) | `.onelake/` in the repo for scripts; tests use a temporary folder |
+| Lake location | `run_all(workdir)` writes `<workdir>/lake`; servers read `FABRICBI_LAKE` (`paths.lake_root()`) | demo: `.onelake-demo/lake`; server default `.onelake/`; tests use a temporary folder |
 | History length | `run_all(workdir, days=56)` | 56 days |
 | Contracts | `contracts/schemas/<layer>.<table>.yaml` | one per silver and gold table |
 
