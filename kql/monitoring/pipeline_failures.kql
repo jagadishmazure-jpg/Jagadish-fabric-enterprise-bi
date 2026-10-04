@@ -1,8 +1,10 @@
-// Log Analytics: failed pipeline steps and data quality gate failures in the last day, for an
-// Azure Monitor scheduled query alert. Reads the OpenTelemetry spans exported to App Insights.
+// Log Analytics: failed pipeline steps in the last day, for an Azure Monitor scheduled query alert.
+// Reads the OpenTelemetry spans exported to App Insights. A failed quality gate or contract check
+// fails its span, with exception.type QualityGateError or ContractError.
 AppDependencies
 | where TimeGenerated > ago(1d)
 | where AppRoleName == "fabric-enterprise-bi"
-| where Success == false or tostring(Properties["fabricbi.dq_gate"]) == "failed"
-| summarize failures = count(), last_failure = max(TimeGenerated) by step = Name
+| where Success == false
+| extend reason = tostring(Properties["exception.type"])
+| summarize failures = count(), last_failure = max(TimeGenerated) by step = Name, reason
 | order by failures desc

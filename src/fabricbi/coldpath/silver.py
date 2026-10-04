@@ -161,6 +161,8 @@ def build_silver(ctx: RunContext) -> dict[str, quality.DqReport]:
         )
         ctx.write("silver", "support_tickets", tickets, ["bronze.support_tickets"], "nb_silver_tickets")
         reports["support_tickets"] = quality.DqReport("silver.support_tickets", len(t), len(tickets), 0)
-    ctx.dq_reports.update(reports)
-    quality.enforce(reports)  # nothing reaches gold if a table quarantines more than 2% of its rows
+        ctx.dq_reports.update(reports)
+        # nothing reaches gold if a table quarantines more than 2% of its rows; inside the span, so a
+        # failed gate marks silver.build as an error with exception.type QualityGateError
+        quality.enforce(reports)
     return reports
