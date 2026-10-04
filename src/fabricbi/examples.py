@@ -260,13 +260,13 @@ def vector_store() -> None:
 
 @example
 def mcp() -> None:
-    from fabricbi.serve.mcp_server import DataAgentTools, McpServer
+    from fabricbi.serve.mcp_server import PROTOCOL_VERSION, DataAgentTools, McpServer
 
     run = get_run()
     srv = McpServer(DataAgentTools(run.lake, run.ctx.lineage), _who("north.manager"))
     init = srv.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
     print(
-        f"initialize -> protocol {init['result']['protocolVersion']}, server {init['result']['serverInfo']}"
+        f"initialize -> protocol version is PROTOCOL_VERSION: {init['result']['protocolVersion'] == PROTOCOL_VERSION}, server {init['result']['serverInfo']}"
     )
     tools = srv.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["tools"]
     print(f"tools/list -> {[t['name'] for t in tools]}")

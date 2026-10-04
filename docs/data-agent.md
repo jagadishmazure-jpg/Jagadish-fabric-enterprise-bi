@@ -66,7 +66,23 @@ flowchart TB
 | Output | PII patterns masked again; row cap | Backstop |
 | Telemetry | Every question is a span with outcome and reason | Shows attacks and false refusals on a dashboard |
 
-## Access model
+## Row-level security by region
+
+Row-level security in the data agent works by region. Each caller's regions come from their
+identity, and the secure session builds every view with a region filter (stores by region,
+facts by the store's region, members by home region) before any SQL runs. A store manager
+therefore sees their own region only, whatever the question or the generated SQL.
+
+### Example: same question, two callers
+
+| Caller | Question | Result |
+|---|---|---|
+| `exec.viewer@fernhill.example` (all regions) | net sales by region | four rows |
+| `west.manager@fernhill.example` | net sales by region | one row: West |
+| `west.manager@fernhill.example` | gross margin by region | refused: `measure_restricted:Gross Margin` |
+| `finance.partner@fernhill.example` | gross margin by category | answered |
+
+Who may see what:
 
 | Principal (fictional) | Roles | Regions | Sees |
 |---|---|---|---|

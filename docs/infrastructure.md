@@ -4,7 +4,7 @@
 secrets, monitoring and Purview) are code, written twice: Bicep in [`infra/`](../infra/README.md)
 and Terraform in [`infra/terraform/`](../infra/terraform/README.md). Both create the same
 resources with the same names, tags and outputs, so a client can use whichever tool their
-platform team runs ([ADR 0005](adr/0005-bicep-and-terraform-twins.md)). Dev uses the smallest
+platform team runs ([ADR 0001](adr/0001-bicep-and-terraform.md)). Dev uses the smallest
 SKUs; prod is hardened and sized from the cost estimate.
 
 ## Architecture

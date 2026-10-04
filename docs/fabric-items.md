@@ -68,8 +68,12 @@ The silver notebook's quarantine split, the PySpark form of `quality.apply_rules
 
 <!-- excerpt: fabric/workspace/nb_silver.Notebook/notebook-content.py -->
 ```python
-checked.filter("_dq_rule IS NULL").drop("_dq_rule").write.mode("overwrite").format("delta").saveAsTable("silver__pos_lines")
-checked.filter("_dq_rule IS NOT NULL").write.mode("overwrite").format("delta").saveAsTable("silver__pos_lines_quarantine")
+checked.filter("_dq_rule IS NULL").drop("_dq_rule").write.mode("overwrite").format("delta").saveAsTable(
+    "silver__pos_lines"
+)
+checked.filter("_dq_rule IS NOT NULL").write.mode("overwrite").format("delta").saveAsTable(
+    "silver__pos_lines_quarantine"
+)
 ```
 
 The publish call:

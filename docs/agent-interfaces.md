@@ -42,7 +42,8 @@ flowchart LR
 
 1. A host launches `python -m fabricbi.serve.mcp_server` with `FABRICBI_SUBJECT` set to the
    signed-in user. Identity comes from the transport, never from tool arguments.
-2. The server speaks JSON-RPC 2.0 over stdio: `initialize` (protocol `2025-06-18`), `ping`,
+2. The server speaks JSON-RPC 2.0 over stdio: `initialize` (answers with the MCP protocol
+   revision in `PROTOCOL_VERSION`), `ping`,
    `tools/list`, `tools/call`.
 3. Every tool's input schema has `additionalProperties: false`. Unknown tools, missing arguments
    and extra arguments get JSON-RPC error `-32602`; unparseable lines get `-32700`.
