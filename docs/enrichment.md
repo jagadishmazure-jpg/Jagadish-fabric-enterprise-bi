@@ -185,7 +185,7 @@ can be charted in the semantic model.
 |---|---|
 | `forecast.py` | A Fabric Data Science notebook that trains with scikit-learn and logs to an ML experiment and model in the workspace, or an Azure ML job reading gold through a OneLake shortcut |
 | `gold.forecast_sales` | Batch scoring with the PREDICT function or a notebook into the Lakehouse |
-| `MockFoundryChatClient` | A chat model deployment in a Microsoft Foundry project (the `foundry_endpoint` in the Terraform outputs), called with Entra ID through the workspace identity, never an API key |
+| `MockFoundryChatClient` | A chat model deployment in a Microsoft Foundry project, called with Entra ID through a managed identity, never an API key. The Foundry project is not in the IaC yet (see Limitations) |
 | Prompt and schema | Same messages and `response_format`, sent with the OpenAI or `azure-ai-inference` SDK |
 | Ticket accuracy gate | Foundry evaluations on a labelled set before a prompt or model change is promoted |
 
@@ -196,3 +196,4 @@ can be charted in the semantic model.
 - The forecast is a single global model over 56 days of synthetic sales, with no holidays,
   promotions or weather. It forecasts the hold-out window only and is not retrained on a schedule.
 - No drift monitoring on inputs or predictions yet.
+- The Bicep and Terraform do not provision a Foundry project or model deployment; that is planned work.
