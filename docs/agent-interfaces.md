@@ -131,7 +131,7 @@ python -m fabricbi.examples a2a
 ```text
 indexed: every docs/*.md section, 5 data product contracts, 8 measure definitions
 'How is average basket calculated?' -> top hit semantic-model/retail_sales.yaml (Measure Average Basket)
-'How fresh is the live store operations data supposed to be?' -> top hit docs/agent-interfaces.md (Run it locally)
+'How fresh is the live store operations data supposed to be?' -> top hit contracts/products/store-operations-live.yaml (Data product store-operations-live)
 'Who owns the loyalty members data product?' with clearance General: loyalty contract returned = False
 'Who owns the loyalty members data product?' with clearance Highly Confidential: loyalty contract returned = True
 ```
