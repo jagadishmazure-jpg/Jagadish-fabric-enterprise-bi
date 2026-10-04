@@ -257,13 +257,14 @@ are saved as `_dq_reports.json` next to the lake.
 | Parquet under `lh_retail/Tables` | Delta tables in the `lh_retail` Lakehouse (schemas enabled) |
 | `OperationalDb` + `MirrorReplica` | Fabric Mirroring of Azure SQL Database (or Cosmos DB), which reads the change feed and keeps a read-only replica in OneLake |
 | `add_shortcut` | OneLake shortcuts |
-| `silver.py`, `gold.py` | The `nb_silver` and `nb_gold` PySpark notebooks in [`fabric/workspace`](../fabric/workspace/README.md), same rules and table names |
+| `silver.py`, `gold.py` | The `nb_silver` and `nb_gold` PySpark notebooks in [`fabric/workspace`](../fabric/workspace/README.md), with the same table names and a subset of the rules ([fabric-items.md](fabric-items.md) lists what they cover) |
 | Contracts in pandas | The same YAML can drive checks in the notebooks or a Great Expectations style suite |
 
 ## Limitations
 
-- The pandas code and the PySpark notebooks are two implementations of the same rules; the
-  notebooks have not been executed on a Fabric capacity.
+- The PySpark notebooks implement the core of the pandas code (POS dedupe, three of the four
+  POS rules, quarantine, ticket redaction, store and product dimensions, sales fact and daily
+  aggregate), not all of it, and have never run on a Fabric capacity.
 - Full rebuild each run: there is no incremental (merge) load into silver and gold yet.
 - The mirroring simulation covers inserts, updates and deletes on two tables; it does not model
   schema changes in the source or initial snapshot plus streaming at Fabric's scale.
