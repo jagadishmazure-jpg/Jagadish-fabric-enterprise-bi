@@ -178,8 +178,9 @@ deploy identity.
 
 The workflows already target the real services: Azure Resource Manager through Terraform or
 Bicep, the Fabric REST API (`api.fabric.microsoft.com/v1`) for the workspace, and fabric-cicd for
-items. The Fabric tenant setting that allows service principals to use Fabric APIs must be on for
-the deploy identity ([implementation-guide.md](implementation-guide.md), step 11).
+items. Two Fabric tenant settings must be on for the deploy identities' security group:
+*Service principals can call Fabric public APIs* and *Service principals can create workspaces,
+connections, and deployment pipelines* ([implementation-guide.md](implementation-guide.md), step 11).
 
 ## Limitations
 
