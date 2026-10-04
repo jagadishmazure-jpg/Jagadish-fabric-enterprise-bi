@@ -143,4 +143,5 @@ def run_all(workdir: Path, days: int = 56) -> PipelineRun:
     (ctx.lake_root / "_dq_reports.json").write_text(
         json.dumps({k: v.__dict__ for k, v in ctx.dq_reports.items()}, indent=1, default=str)
     )
+    ctx.telemetry.export_jsonl(ctx.lake_root / "_telemetry.jsonl")
     return PipelineRun(ctx, src, hot, res, results, lag)

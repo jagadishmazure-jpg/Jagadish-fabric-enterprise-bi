@@ -1,4 +1,5 @@
 import copy
+import json
 import re
 from datetime import datetime, timedelta
 
@@ -132,6 +133,8 @@ def test_pipeline_emits_telemetry(run):
     names = {s.name for s in t.spans}
     assert {"mirroring.sync", "enrich.tickets", "enrich.forecast", "hotpath.eventstream"} <= names
     assert t.counter("fabricbi.hotpath.late_events") == 48
+    lines = [json.loads(x) for x in (run.ctx.lake_root / "_telemetry.jsonl").read_text().splitlines()]
+    assert {x["name"] for x in lines if x["type"] == "span"} >= {"silver.build", "gold.build"}
 
 
 def test_capacity_sizing_picks_f4_with_headroom():
