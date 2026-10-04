@@ -159,3 +159,19 @@ def test_prod_iac_sku_matches_estimate():
 def test_cost_report_is_labelled_as_estimate():
     text = capacity.markdown(capacity.size())
     assert "estimate" in text.lower()
+
+
+def test_chunker_skips_pasted_output_and_code_comments():
+    import tempfile
+
+    from fabricbi.serve.vector_store import chunk_markdown
+
+    with tempfile.TemporaryDirectory(dir=ROOT) as d:
+        p = ROOT / d / "doc.md"
+        p.write_text(
+            "# Title\nprose\n```bash\n# a comment, not a heading\nrun\n```\n"
+            "<!-- example: x -->\n```text\npasted output\n```\n## Next\nmore\n"
+        )
+        chunks = chunk_markdown(p)
+    assert [c.heading for c in chunks] == ["Title", "Next"]
+    assert "# a comment" in chunks[0].text and "pasted output" not in chunks[0].text

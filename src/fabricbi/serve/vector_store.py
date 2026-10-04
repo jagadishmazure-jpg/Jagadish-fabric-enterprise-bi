@@ -35,9 +35,29 @@ class Chunk:
 
 
 def chunk_markdown(path: Path, label: str = "General") -> list[Chunk]:
+    """Split a markdown file on headings. A `#` line inside a code fence is not a heading, and a
+    fenced block under an `<!-- example: ... -->` marker is pasted command output, not prose, so
+    it is left out of the index."""
     rel = path.relative_to(ROOT).as_posix()
     out, heading, buf = [], path.stem, []
+    in_fence = skip_fence = after_example = False
     for line in path.read_text().splitlines():
+        if line.startswith("```"):
+            if not in_fence:
+                in_fence, skip_fence = True, after_example
+            else:
+                in_fence = skip_fence = False
+                continue
+            after_example = False
+            if skip_fence:
+                continue
+            buf.append(line)
+            continue
+        if in_fence:
+            if not skip_fence:
+                buf.append(line)
+            continue
+        after_example = line.startswith("<!-- example:")
         if line.startswith("#"):
             if "".join(buf).strip():
                 out.append(Chunk(f"{rel}#{len(out)}", rel, heading, "\n".join(buf).strip(), label))

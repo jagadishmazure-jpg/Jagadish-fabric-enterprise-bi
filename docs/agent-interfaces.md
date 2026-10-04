@@ -27,7 +27,9 @@ flowchart LR
 
 ### Vector store
 
-1. `corpus()` collects one chunk per markdown section under `docs/`, one chunk per data product
+1. `corpus()` collects one chunk per markdown section under `docs/` (code fences stay in the
+   chunk, but pasted command output under an `<!-- example: -->` marker is skipped, so a doc's own
+   sample output cannot become a search hit), one chunk per data product
    contract (description, owner, tables, freshness SLO) and one chunk per measure (description,
    DAX, synonyms).
 2. Each chunk carries a sensitivity label: data product chunks take the product's label, the rest
@@ -131,8 +133,8 @@ python -m fabricbi.examples a2a
 <!-- example: vector_store -->
 ```text
 indexed: every docs/*.md section, 5 data product contracts, 8 measure definitions
-'How is average basket calculated?' -> top hit semantic-model/retail_sales.yaml (Measure Average Basket)
-'How fresh is the live store operations data supposed to be?' -> top hit contracts/products/store-operations-live.yaml (Data product store-operations-live)
+average-basket question -> top hit semantic-model/retail_sales.yaml (Measure Average Basket)
+freshness question -> top hit contracts/products/store-operations-live.yaml (Data product store-operations-live)
 'Who owns the loyalty members data product?' with clearance General: loyalty contract returned = False
 'Who owns the loyalty members data product?' with clearance Highly Confidential: loyalty contract returned = True
 ```
@@ -177,6 +179,7 @@ PORT=8460 python -m fabricbi.serve.a2a     # card at http://127.0.0.1:8460/.well
 | `test_agent_card_shape` | card fields and control-plane extension |
 | `test_a2a_answers_with_end_user_rls`, `test_a2a_refuses_unknown_tenant_or_caller`, `test_a2a_validates_skill_and_input`, `test_a2a_refusal_is_reported` | A2A behaviour |
 | `test_a2a_over_http` | real HTTP server: card and `SendMessage` |
+| `tests/test_09_governance_ops.py::test_chunker_skips_pasted_output_and_code_comments` | `#` lines inside code fences are not headings, and pasted command output under an example marker is not indexed |
 | `tests/test_09_governance_ops.py::test_vector_store_filters_by_label` | the loyalty contract is hidden at General and returned at Highly Confidential |
 | `tests/test_09_governance_ops.py::test_label_order_and_clearance` | clearance from roles |
 | `tests/test_10_repo.py::test_agent_card_eval_score_matches_baseline` | the card's `eval_score` equals the NL-to-SQL baseline; `export_contracts.py --check` in CI catches any other drift in the card or tool list |

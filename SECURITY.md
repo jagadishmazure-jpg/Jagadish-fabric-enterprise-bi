@@ -25,4 +25,6 @@ This repository is a reference build. It runs offline on synthetic data for a fi
 - No secrets in the repo; a secrets scan runs in CI ([`scripts/secrets_scan.py`](scripts/secrets_scan.py)).
 - CI signs in to Azure with OIDC only; runtime uses a managed identity, and SAS and shared keys are turned off ([ADR 0003](docs/adr/0003-oidc-and-managed-identity.md)).
 - checkov scans the Terraform on every change, with each skipped check justified in [`.checkov.yaml`](.checkov.yaml).
+- The silver step stops the pipeline (`QualityGateError`) when more than 2% of a table's rows fail quality rules, so bad data does not reach gold or the agent.
+- Not yet in place: private networking, semantic model RLS roles in TMDL, alert rules, and Key Vault RBAC drift checks in the smoke tests.
 - Full status of each control: [`docs/best-practices.md`](docs/best-practices.md).

@@ -19,7 +19,7 @@ the same transformations in PySpark for the real platform.
 
 ## Consequences
 
-- The full pipeline, evals and 100+ tests run in seconds on a laptop or CI runner with no
+- The full pipeline, the seven eval gates and 199 tests run in seconds on a laptop or CI runner with no
   credentials.
 - Two implementations of the medallion logic exist (pandas here, PySpark in the notebooks). The
   contracts in `contracts/schemas/` are the shared definition of the output, but the notebooks

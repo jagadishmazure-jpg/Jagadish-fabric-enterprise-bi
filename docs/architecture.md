@@ -5,6 +5,9 @@ lake, keep a fast path for what is happening now and a careful path for what hap
 one governed serving layer in front of people and agents. Inspired by Microsoft's Fabric
 enterprise BI reference patterns; the design, names and code here are my own.
 
+This page is the overview. Each component has its own page (see the [docs index](README.md)), and
+the [implementation guide](implementation-guide.md) walks through running and deploying it.
+
 ## End to end
 
 ```mermaid
@@ -92,7 +95,7 @@ flowchart LR
 | Layer | Contract | Who reads it |
 |---|---|---|
 | bronze | none beyond ingest metadata; kept for replay | data engineers |
-| silver | YAML schema contracts on the key tables | data engineers, data scientists |
+| silver | YAML schema contracts on `pos_lines` and `products`; quality rules on every table, with a 2% quarantine gate | data engineers, data scientists |
 | gold | a schema contract on every table, checked before each write | the semantic model, the data agent, ML, partners |
 
 ## Gold model (star schema)

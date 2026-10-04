@@ -244,12 +244,14 @@ def vector_store() -> None:
     n_prod = sum(c.source.startswith("contracts/") for c in vs.chunks)
     n_meas = sum(c.source.startswith("semantic-model/") for c in vs.chunks)
     print(f"indexed: every docs/*.md section, {n_prod} data product contracts, {n_meas} measure definitions")
-    for q in (
-        "How is average basket calculated?",
-        "How fresh is the live store operations data supposed to be?",
+    # The output names each question by a label, not its text: this output is pasted into a doc
+    # that the store indexes, and echoing the text would make the doc its own top hit.
+    for label, q in (
+        ("average-basket question", "How is average basket calculated?"),
+        ("freshness question", "How fresh is the live store operations data supposed to be?"),
     ):
         c, _ = vs.search(q, k=1, clearance="General")[0]
-        print(f"{q!r} -> top hit {c.source} ({c.heading})")
+        print(f"{label} -> top hit {c.source} ({c.heading})")
     q = "Who owns the loyalty members data product?"
     for clearance in ("General", "Highly Confidential"):
         sources = [c.source for c, _ in vs.search(q, k=3, clearance=clearance)]

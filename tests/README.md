@@ -22,6 +22,6 @@ temporary folder (about five seconds), and every test reads from that run.
 Run:
 
 ```bash
-pytest -q  # 198 tests
+pytest -q  # 199 tests
 pytest -q tests/test_07_semantic_agent.py -k guardrail   # one area
 ```

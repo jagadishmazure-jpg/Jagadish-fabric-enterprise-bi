@@ -12,7 +12,7 @@ or REST plus the fabric-cicd library.
 
 ## Decision
 
-Keep item definitions as files in `fabric/workspace/` in the format Fabric Git integration writes
+Keep item definitions as files in [`fabric/workspace/`](../../fabric/workspace/README.md) in the format Fabric Git integration writes
 (a `.platform` file plus the item definition). The deploy job creates or finds the workspace with
 the REST API, assigns it to the capacity, and publishes the folder with fabric-cicd, using
 `parameter.yml` to swap environment-specific values. Generated parts (the semantic model TMDL, the
@@ -22,7 +22,8 @@ fails if they are stale.
 ## Consequences
 
 - Infrastructure and items have separate tools and separate failure modes; the pipeline runs them
-  in order and smoke-tests both.
+  in order and smoke-tests both (the smoke step checks that `lh_retail`, `eh_retail`, `nb_silver`,
+  `nb_gold` and `sm_retail_sales` exist in the workspace). Details: [fabric-items.md](../fabric-items.md).
 - The pipeline identity needs Fabric API access granted by a tenant admin, not just Azure RBAC.
 - The Fabric Terraform provider would let one tool own both layers; it can be revisited if a client
   already uses it.

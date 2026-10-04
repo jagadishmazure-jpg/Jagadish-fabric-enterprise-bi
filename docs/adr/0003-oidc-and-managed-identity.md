@@ -13,10 +13,11 @@ can leak and has to be rotated.
 - GitHub Actions signs in with OpenID Connect federated credentials, one identity per environment.
   No client secret exists.
 - Runtime access uses a user-assigned managed identity (`id-...-ingest`) with data-plane roles:
-  Event Hubs Data Receiver, Storage Blob Data Contributor, Key Vault Secrets User.
+  Azure Event Hubs Data Receiver, Storage Blob Data Contributor, Key Vault Secrets User.
 - Local (key) auth is turned off where the resource allows it: Event Hubs `local_authentication_enabled =
-  false`, storage `shared_access_key_enabled = false`, Key Vault in RBAC mode. The smoke tests fail
-  the deploy if any of these drift.
+  false`, storage `shared_access_key_enabled = false`, Key Vault in RBAC mode. The smoke tests in
+  `.github/scripts/deploy.sh` fail the deploy if an Event Hubs namespace allows SAS keys or a
+  storage account allows shared keys (Key Vault RBAC mode is enforced by the templates only).
 - Offline, the data agent and MCP server identify the caller by a principal name that maps to a
   role in `governance/principals.yaml`; in Fabric that mapping comes from Entra groups.
 

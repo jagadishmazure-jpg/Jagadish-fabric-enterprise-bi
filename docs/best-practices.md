@@ -18,8 +18,8 @@ Nothing here has been deployed to Azure or Fabric.
 |---|---|---|---|
 | **Medallion layers** | Bronze is an exact copy plus load metadata; silver applies contracts, types, dedup and redaction; gold is a star schema with conformed dimensions. | Implemented (local); notebooks written, not deployed | [`coldpath/`](../src/fabricbi/coldpath/README.md), [cold-path.md](cold-path.md), [`fabric/workspace`](../fabric/workspace/README.md) |
 | **Idempotent ingest** | A manifest of file hashes makes bronze loads replay-safe; the mirror applies CDC from a checkpointed log sequence number, so re-running a sync changes nothing. | Implemented | [`bronze.py`](../src/fabricbi/coldpath/bronze.py), [`mirroring.py`](../src/fabricbi/coldpath/mirroring.py) |
-| **Schema contracts** | Every silver and gold table has a YAML contract (types, keys, nullability, labels). Writes are validated, and a compatibility check rejects breaking changes without a major version bump. | Implemented | [`contracts/`](../contracts/README.md), [`contracts.py`](../src/fabricbi/coldpath/contracts.py) |
-| **Data quality and quarantine** | Rule-based checks per table; failing rows go to a quarantine table with the reason instead of being dropped silently; the DQ report is part of the run output. | Implemented | [`quality.py`](../src/fabricbi/coldpath/quality.py) |
+| **Schema contracts** | Every gold table (10) and the two key silver tables (`pos_lines`, `products`) have a YAML contract (types, keys, nullability, labels). Writes are validated, and a compatibility check rejects breaking changes without a major version bump. | Implemented | [`contracts/`](../contracts/README.md), [`contracts.py`](../src/fabricbi/coldpath/contracts.py) |
+| **Data quality and quarantine** | Rule-based checks per table; failing rows go to a quarantine table with the reason instead of being dropped silently; the DQ report is part of the run output, and `quality.enforce` stops the pipeline with `QualityGateError` when any table quarantines more than 2% of its rows. | Implemented | [`quality.py`](../src/fabricbi/coldpath/quality.py) |
 | **Hot and cold paths (Lambda)** | Streaming windows with watermark and allowed lateness feed real-time alerts; the batch path owns history; the serving view takes batch for closed days and stream only after the batch watermark, so nothing is counted twice. | Implemented | [`hotpath/`](../src/fabricbi/hotpath/README.md), [`lambda_view.py`](../src/fabricbi/lambda_view.py), [hot-path.md](hot-path.md) |
 | **KQL parity** | The KQL files and the Python reference share constants, and a test fails if they drift. | Implemented (Python side); KQL not executed | [`kql/`](../kql/README.md) |
 
@@ -51,8 +51,8 @@ Nothing here has been deployed to Azure or Fabric.
 
 | Practice | What this repo does | Status | Where |
 |---|---|---|---|
-| **Observability** | OpenTelemetry-style metrics and spans per pipeline step, freshness SLOs per data product with error budgets, and KQL for Log Analytics. | Implemented (local); alert rules planned | [`observability/`](../src/fabricbi/observability/README.md), [observability.md](observability.md), [`kql/monitoring`](../kql/monitoring/README.md) |
-| **FinOps** | Capacity unit estimate per workload, SKU choice with headroom, pay-as-you-go vs reserved, pause schedule, budget alerts in the IaC. All figures are labelled estimates. | Implemented (estimate); budget written, not deployed | [cost-estimate.md](cost-estimate.md), [`finops/`](../finops/README.md) |
+| **Observability** | OpenTelemetry-style metrics and spans per pipeline step, written to `<lake>/_telemetry.jsonl` on every run; freshness SLOs per data product with error budgets; KQL for Log Analytics. | Implemented (local); alert rules planned | [`observability/`](../src/fabricbi/observability/README.md), [observability.md](observability.md), [`kql/monitoring`](../kql/monitoring/README.md) |
+| **FinOps** | Capacity unit estimate per workload, SKU choice with headroom, pay-as-you-go vs reserved, pause schedule, a resource-group budget with alerts at 50%, 80% and 100% in Terraform (not in Bicep). All figures are labelled estimates. | Implemented (estimate); Terraform budget written, not deployed; Bicep budget planned | [cost-estimate.md](cost-estimate.md), [`finops/`](../finops/README.md) |
 | **ML lifecycle** | Time-based backtest against a naive baseline, a model card regenerated from a real run. No registry, scheduled retrain or drift monitor. | Implemented (training, card); MLOps planned | [`forecast.py`](../src/fabricbi/enrich/forecast.py), [model card](model-card-demand-forecast.md) |
 | **CI/CD** | Lint, tests, eval gate, generated-file checks, IaC checks on every push; dev -> prod deploy with approval, gated off. | Implemented (CI); deploy written, not deployed | [deployment.md](deployment.md), [ADR 0005](adr/0005-deploy-gated-off.md) |
 | **Disaster recovery** | OneLake keeps data in the capacity's region; prod storage is zone-redundant and Key Vault has purge protection. No second region or restore drill. | Planned | [`infra/`](../infra/README.md) |
@@ -66,5 +66,7 @@ Nothing here has been deployed to Azure or Fabric.
   endpoints for Event Hubs and Purview.
 - Fabric workspace roles and semantic model RLS roles generated from the access policy.
 - Alert rules on the monitoring KQL, a forecast drift monitor, and a DR plan.
+- Notebooks for the rest of the cold path (catalog flattening, the customer and date dimensions, the freezer tables and the guest member), so the Fabric items cover what the local pipeline does.
+- A budget resource in the Bicep template, to match Terraform.
 
 Related: [architecture decisions](adr/README.md) · [deployment pipeline](deployment.md) · [security policy](../SECURITY.md) · [contributing](../CONTRIBUTING.md)

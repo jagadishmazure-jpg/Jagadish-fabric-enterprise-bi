@@ -12,10 +12,10 @@ only speaks one of them leaves half its readers translating.
 ## Decision
 
 Write the Azure footprint (Fabric capacity, Event Hubs, IoT Hub, storage, Key Vault, Log
-Analytics, Purview, identity, budget) in both `infra/main.bicep` and `infra/terraform`, using
+Analytics, Purview, identity) in both `infra/main.bicep` and `infra/terraform`, using
 `azurerm` resources only (`azurerm_fabric_capacity` exists, so `azapi` is not needed). Both read
 the same per-environment choices: smallest SKUs in dev, zone-redundant storage and Purview in prod.
-The deploy workflow takes a `deploy_tool` input.
+The deploy workflow takes a `deploy_tool` input. The resource-group budget is the one exception: it exists only in Terraform so far.
 
 ## Consequences
 

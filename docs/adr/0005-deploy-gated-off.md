@@ -20,4 +20,4 @@ the smoke tests by default.
 - The deploy path has never run. Validation (Terraform validate and test, tflint, checkov, Bicep
   build) gives confidence in the templates, not in the Fabric REST steps.
 - Turning it on is a deliberate change made after the setup checklist in
-  [deployment.md](../deployment.md) is done.
+  [deployment.md](../deployment.md) and the [implementation guide](../implementation-guide.md) is done.

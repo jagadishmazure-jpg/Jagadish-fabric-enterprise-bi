@@ -18,7 +18,13 @@ python scripts/run_evals.py                 # eval gate
 python scripts/export_contracts.py --check  # agent card, MCP tools, TMDL, KQL schema
 python scripts/cost_report.py --check && python scripts/model_card.py --check
 python scripts/demo.py                      # end-to-end run
+python scripts/doc_outputs.py --check       # doc example blocks match real output
+python scripts/secrets_scan.py              # no secrets in tracked files
 ```
+
+Run one component on its own with `python -m fabricbi.examples <name>` (the names are listed in
+[`src/fabricbi/README.md`](src/fabricbi/README.md)). If you change code that a doc example shows,
+run `python scripts/doc_outputs.py` to refresh the pasted output, then commit the doc.
 
 Infrastructure (offline, no Azure login needed):
 
@@ -36,5 +42,6 @@ bicep build infra/main.bicep --stdout > /dev/null
 - Every folder has a `README.md` with a `| File | What it does |` table (Fabric item folders excepted, since Fabric publishes their contents); add a row when you add a file.
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`, `ci:`, `build:`, `test:`).
 - Infrastructure changes go into both Bicep and Terraform.
+- Code excerpts in docs sit under an `<!-- excerpt: path -->` marker, and `tests/test_11_docs.py` checks that their lines appear in that source file; keep the marker when you add one.
 - Docs describe what the code does today. Mark anything else as planned. Numbers must come from a real run.
 - Record significant design choices as an ADR in [`docs/adr/`](docs/adr/README.md) and add a line to [`CHANGELOG.md`](CHANGELOG.md).

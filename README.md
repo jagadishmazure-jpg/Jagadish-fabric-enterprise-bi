@@ -9,13 +9,15 @@
 - **Hot and cold paths (Lambda architecture):** live checkouts and freezer sensors are windowed in real time with late-event handling and raise alerts (3 of 3 planted incidents caught, no false alarms), while the batch path owns corrected history. One serving view combines both without counting any day twice.
 - **Data that can be trusted:** schema contracts on every table, quality rules with a quarantine instead of silent drops, change-data-capture mirroring of an operational database, and a Purview-style catalog with lineage, owners and sensitivity labels.
 - **A governed "Fabric data agent":** plain-language questions become SQL over the gold model, but only read-only SQL on allowed tables, with row-level security by region, hidden finance columns, masked personal data and a query cost limit. 22 of 22 golden questions are answered correctly and 22 of 22 guardrail cases behave as expected. It is exposed as an **MCP server** and an **A2A agent** so other agents can call it.
-- **AI enrichment:** a scikit-learn demand forecast that beats the naive baseline by 21% (with a model card), and a Microsoft Foundry ticket classifier harness that removes personal data first and sends manipulated answers to a human.
-- **177 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
+- **AI enrichment:** a scikit-learn demand forecast that beats the naive baseline by 20.5% on WAPE (with a [model card](docs/model-card-demand-forecast.md)), and a Microsoft Foundry ticket classifier harness that removes personal data first and sends manipulated answers to a human.
+- **199 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
 - **Terraform + Bicep, GitHub Actions deploy:** Fabric capacity, Event Hubs, IoT Hub, storage, Key Vault, Log Analytics and Purview in both tools, smallest SKUs in dev, and a pipeline with OIDC login (no secrets), a Bicep/Terraform choice, dev -> prod approval and Fabric item publishing. It stays switched off until a subscription exists ([docs/deployment.md](docs/deployment.md)).
 
 **Skills demonstrated:** Microsoft Fabric (Lakehouse, Eventhouse/KQL, Eventstream, Mirroring, Direct Lake semantic models, data agents), Power BI / TMDL, Microsoft Purview, Azure Event Hubs, IoT Hub, data modelling (star schema), data quality and contracts, DuckDB, pandas, scikit-learn, Microsoft Foundry, MCP, A2A, Terraform, Bicep, GitHub Actions (OIDC), Python.
 
 *Honesty note: everything runs offline on synthetic data, with local Parquet and DuckDB standing in for OneLake and a deterministic mock in place of the Foundry model. Nothing has been deployed to Azure or a Fabric tenant yet (see [Limits](#limits)).*
+
+**Start here:** [implementation guide](docs/implementation-guide.md) (clean clone to full demo, then to a real Fabric and Azure deployment).
 
 **Contents:** [What](#at-a-glance-for-recruiters) · [Why](#why-it-exists) · [Architecture](#architecture) · [Portfolio](#how-it-fits-the-portfolio) · [Run](#run-it-about-a-minute) · [Test](#test) · [Deploy](#deploy) · [Limits](#limits) · [Docs](#documentation)
 
@@ -84,7 +86,8 @@ flowchart LR
 | Govern | Catalog, lineage, labels, access policy, data products, freshness SLOs, capacity cost estimate | [`governance/`](src/fabricbi/governance/README.md), [`observability/`](src/fabricbi/observability/README.md), [`finops/`](src/fabricbi/finops/README.md) |
 | Fabric items | Lakehouse, Eventhouse, KQL database, PySpark notebooks and semantic model, in Fabric Git format | [`fabric/workspace/`](fabric/workspace/README.md) |
 
-More detail: [architecture](docs/architecture.md) · [hot path](docs/hot-path.md) · [cold path](docs/cold-path.md) · [data agent](docs/data-agent.md) · [governance](docs/governance.md).
+Component docs (each covers purpose, design, key files, code excerpts, configuration, local run with real output, tests, security, observability, failure modes, the real Fabric or Azure mapping and limits):
+[architecture](docs/architecture.md) · [domain](docs/domain.md) · [cold path](docs/cold-path.md) · [hot path](docs/hot-path.md) · [Lambda view](docs/lambda-view.md) · [enrichment](docs/enrichment.md) · [semantic model](docs/semantic-model.md) · [data agent](docs/data-agent.md) · [MCP and A2A](docs/agent-interfaces.md) · [governance](docs/governance.md) · [observability](docs/observability.md) · [FinOps](docs/finops.md) · [KQL](docs/kql.md) · [Fabric items](docs/fabric-items.md) · [infrastructure](docs/infrastructure.md) · [deployment](docs/deployment.md).
 
 ## How it fits the portfolio
 
@@ -117,7 +120,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"ask_data_a
 ## Test
 
 ```bash
-pytest -q        # 177 tests, offline, about 25 seconds
+pytest -q        # 199 tests, offline
 make check       # lint, generated-file checks, secrets scan, tests, evals, demo
 make terraform   # fmt, validate and plan tests with mocked providers
 ```
@@ -159,7 +162,8 @@ which is not set.
 
 | File | What it does |
 |---|---|
-| [`docs/`](docs/README.md) | Architecture, hot and cold paths, enrichment, data agent, governance, observability, cost, deployment |
+| [`docs/`](docs/README.md) | Index of every component doc |
+| [`docs/implementation-guide.md`](docs/implementation-guide.md) | Step-by-step: clean clone to demo, then a real Fabric and Azure deployment |
 | [`docs/best-practices.md`](docs/best-practices.md) | What is implemented, written but not deployed, or planned |
 | [`docs/adr/`](docs/adr/README.md) | Six architecture decision records |
 | [`SECURITY.md`](SECURITY.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CHANGELOG.md`](CHANGELOG.md) | Policies and change history |
