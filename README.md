@@ -184,6 +184,6 @@ which is not set.
 | [`control-plane/`](control-plane/README.md) | Generated A2A card and MCP tool list |
 | [`finops/`](finops/README.md) | Capacity estimate inputs |
 | [`infra/`](infra/README.md) | Bicep and Terraform |
-| [`.github/`](.github/README.md) | Workflows and deploy scripts |
+| [`.github/`](.github/) | Workflows and deploy scripts |
 | [`docs/`](docs/README.md) | Documentation |
 | [`pyproject.toml`](pyproject.toml) · [`Makefile`](Makefile) · [`.env.example`](.env.example) · [`.checkov.yaml`](.checkov.yaml) · [`.gitignore`](.gitignore) · [`LICENSE`](LICENSE) | Project config |

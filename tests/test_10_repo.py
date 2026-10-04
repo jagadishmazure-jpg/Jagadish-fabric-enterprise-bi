@@ -123,7 +123,8 @@ def test_agent_card_eval_score_matches_baseline():
 def test_every_folder_readme_lists_its_files():
     problems = []
     for d in sorted({f.parent for f in _tracked()}):
-        if d == ROOT or _is_fabric_item(d):
+        # .github has no README on purpose: GitHub would show .github/README.md instead of the root README.
+        if d in (ROOT, ROOT / ".github") or _is_fabric_item(d):
             continue
         readme = d / "README.md"
         if not readme.exists():
