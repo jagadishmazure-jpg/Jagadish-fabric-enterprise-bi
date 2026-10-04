@@ -24,4 +24,4 @@ secrets:
 overlap:          ## originality check against local reference files (never committed)
 	python scripts/overlap_check.py $(REFS)
 check:            ## what CI runs (Python side)
-	ruff check . && ruff format --check . && python scripts/export_contracts.py --check && python scripts/cost_report.py --check && python scripts/model_card.py --check && python scripts/secrets_scan.py && pytest -q && python scripts/run_evals.py && python scripts/demo.py
+	ruff check . && ruff format --check . && python scripts/export_contracts.py --check && python scripts/cost_report.py --check && python scripts/model_card.py --check && python scripts/doc_outputs.py --check && python scripts/secrets_scan.py && pytest -q && python scripts/run_evals.py && python scripts/demo.py

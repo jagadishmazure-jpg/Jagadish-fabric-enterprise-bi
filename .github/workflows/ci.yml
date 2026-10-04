@@ -23,6 +23,8 @@ jobs:
         run: python scripts/export_contracts.py --check
       - name: Cost estimate and model card are current
         run: python scripts/cost_report.py --check && python scripts/model_card.py --check
+      - name: Documentation outputs are current (examples pasted in docs, test counts)
+        run: python scripts/doc_outputs.py --check
       - name: Secrets scan
         run: python scripts/secrets_scan.py
 

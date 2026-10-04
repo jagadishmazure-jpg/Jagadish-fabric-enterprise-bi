@@ -1,44 +1,23 @@
-# Deployment: GitHub Actions, OIDC, dev -> prod
+# Deployment: GitHub Actions workflows, OIDC, dev to prod
 
-Deployment runs on **GitHub Actions**. The Azure resources can be created with **Terraform or
-Bicep** (the `deploy_tool` input), and Azure login uses **OpenID Connect**: GitHub issues a
-short-lived token, Entra ID trusts it through a federated credential, and no client secret is
-stored anywhere.
+**Purpose.** Every change is checked by CI, and the same repository can deploy the platform to a
+dev and a prod environment with one workflow, using either Terraform or Bicep, with no stored
+secrets and a human approval before prod. This page explains the four workflows and the deploy
+script. The step-by-step first deployment is in the [implementation guide](implementation-guide.md).
 
 > **Status: nothing has been deployed.** Every deploy job is gated behind the repository variable
 > `DEPLOY_ENABLED`, which is **not set**. On each push to `main` the deploy workflow reports the
 > gate and skips its jobs. The pull-request checks (lint, tests, eval gate, Terraform validate and
 > test, tflint, checkov, Bicep build) run for real on every change.
 
-## Two layers, two mechanisms
-
-A Fabric platform is deployed in two different ways, and the pipeline keeps them apart:
-
-| Layer | What | How it is deployed |
-|---|---|---|
-| Azure resources | Fabric capacity, Event Hubs, IoT Hub, landing storage, Key Vault, Log Analytics, Purview (prod), managed identity, budget | Terraform ([`infra/terraform`](../infra/terraform)) or Bicep ([`infra/main.bicep`](../infra/main.bicep)) through Azure Resource Manager |
-| Fabric workspace items | Workspace, Lakehouse, Eventhouse + KQL database, notebooks, semantic model | Not ARM resources. The workspace is created with the Fabric REST API (`POST /v1/workspaces` with a `capacityId`) and the item definitions in [`fabric/workspace/`](../fabric/workspace) are published with [fabric-cicd](https://microsoft.github.io/fabric-cicd/) by [`scripts/publish_fabric_items.py`](../scripts/publish_fabric_items.py) |
-
-Keeping item definitions as files (the same format Fabric Git integration writes) means a
-reviewer sees a notebook or measure change as a diff in the pull request, and the same definitions
-go to dev and prod with environment values swapped by
-[`fabric/workspace/parameter.yml`](../fabric/workspace/parameter.yml). See
-[ADR 0006](adr/0006-fabric-items-via-rest-and-fabric-cicd.md).
-
-## Workflows
-
-| Workflow | Trigger | What it does |
-|---|---|---|
-| [`ci.yml`](../.github/workflows/ci.yml) | push to `main`, pull requests | Ruff, generated files current, secrets scan, pytest, end-to-end demo, eval gate, Bicep build |
-| [`infra.yml`](../.github/workflows/infra.yml) | push to `main`, pull requests, manual | `terraform fmt -check`, `validate`, `terraform test` with mocked providers, tflint, checkov. `plan` runs only if the OIDC variables exist |
-| [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`, manual | Dev: provision, Fabric workspace + items, smoke tests, pause the capacity. Prod: the same after reviewer approval. Gated by `DEPLOY_ENABLED` |
-| [`teardown.yml`](../.github/workflows/teardown.yml) | manual only | Destroys one environment with the tool that created it. Gated, runs in the matching environment (so prod needs approval) and needs the environment name typed again |
+## Architecture
 
 ```mermaid
 flowchart LR
-    PR[pull request] --> V[ci + infra: tests, eval gate,<br/>validate, tflint, checkov]
+    PR[pull request / push] --> CI[ci: lint, generated files,<br/>doc outputs, secrets, pytest,<br/>demo, eval gate, bicep build]
+    PR --> INF[infra: fmt, validate, terraform test,<br/>tflint, checkov, plan if OIDC vars]
     M[push to main / manual] --> PF[preflight: report DEPLOY_ENABLED]
-    PF --> D1[deploy-dev<br/>OIDC login<br/>terraform or bicep]
+    PF --> D1[deploy-dev<br/>OIDC login, terraform or bicep]
     D1 --> F1[Fabric REST: workspace on capacity<br/>fabric-cicd: publish items]
     F1 --> S1[smoke: resources, keyless,<br/>capacity active, items present]
     S1 --> P1[pause dev capacity]
@@ -46,61 +25,168 @@ flowchart LR
     A --> D2[deploy-prod] --> F2[Fabric items prod] --> S2[smoke prod]
 ```
 
-**Smoke tests** check that the resource group has its resources, that no Event Hubs namespace
-allows SAS keys and no storage account allows shared keys, that the Fabric capacity is `Active`,
-and that the expected items exist in the workspace.
+## Two layers, two mechanisms
 
-**Pausing.** A Fabric capacity bills by the hour while it is running, whether or not anything
-uses it. The dev job pauses the capacity after its smoke tests (input `pause_dev_capacity`,
-default on). Resume it from the portal, or with the Azure CLI Fabric extension
-(`az extension add --name microsoft-fabric`, then
-`az fabric capacity resume --resource-group <rg> --capacity-name <name>`), when you need it. The cost table is in [cost-estimate.md](cost-estimate.md).
+| Layer | What | How it is deployed |
+|---|---|---|
+| Azure resources | Fabric capacity, Event Hubs, IoT Hub, landing storage, Key Vault, Log Analytics, App Insights, Purview (prod), budget | Terraform ([`infra/terraform`](../infra/terraform/README.md)) or Bicep ([`infra/main.bicep`](../infra/main.bicep)) through Azure Resource Manager ([infrastructure.md](infrastructure.md)) |
+| Fabric workspace items | Workspace, Lakehouse, Eventhouse, KQL database, notebooks, semantic model | Not ARM resources. The workspace is created with the Fabric REST API (`POST /v1/workspaces` with a `capacityId`) and the definitions in [`fabric/workspace/`](../fabric/workspace/README.md) are published with fabric-cicd by [`scripts/publish_fabric_items.py`](../scripts/publish_fabric_items.py) ([fabric-items.md](fabric-items.md)) |
 
-## One-time setup (when a subscription exists)
+Item definitions are files in the format Fabric Git integration writes, so a notebook or measure
+change is a reviewable diff, and the same definitions go to dev and prod with values swapped by
+[`fabric/workspace/parameter.yml`](../fabric/workspace/parameter.yml). See
+[ADR 0006](adr/0006-fabric-items-via-rest-and-fabric-cicd.md).
 
-Nothing below has been done yet; it is the checklist for the first real deployment.
+## How it works
 
-1. **Identities.** One Entra app registration (or user-assigned managed identity) per environment,
-   for example `gh-fabricbi-dev` and `gh-fabricbi-prod`.
-2. **Federated credentials**, issuer `https://token.actions.githubusercontent.com`, audience
-   `api://AzureADTokenExchange`, subjects:
-   - `repo:jagadishmazure-jpg/Jagadish-fabric-enterprise-bi:environment:dev`
-   - `repo:jagadishmazure-jpg/Jagadish-fabric-enterprise-bi:environment:prod`
-   - optional read-only plan identity: `repo:jagadishmazure-jpg/Jagadish-fabric-enterprise-bi:pull_request`
-3. **RBAC, least privilege.** `Contributor` on the environment's resource group or subscription,
-   `Role Based Access Control Administrator` limited by condition to the data roles the stack
-   assigns, and `Storage Blob Data Contributor` on the Terraform state container.
-4. **Fabric tenant settings** (Fabric admin portal). Allow service principals to use Fabric APIs,
-   scoped to a security group that contains the two deploy identities. Add each identity as a
-   capacity administrator through the `FABRIC_ADMINS` variable, so it can assign the workspace.
-   Note the capacity administrator list is validated as UPNs or object ids.
-5. **No capacity yet?** A Fabric trial capacity works for a first walkthrough. Set
-   `FABRIC_CAPACITY_ID` to its id and `deploy_fabric_capacity = false` (Terraform) or
-   `deployFabricCapacity: false` (Bicep), and the pipeline publishes into the trial instead of
-   creating an F SKU.
-6. **Terraform state.** Create the state storage account and container once
-   (commands in [`infra/terraform/README.md`](../infra/terraform/README.md)).
-7. **GitHub Environments** `dev` and `prod`. On `prod`: required reviewers, prevent self-review,
-   deployment branches limited to `main`.
-8. **Variables** (no secrets): `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` per
-   environment; `TFSTATE_RESOURCE_GROUP`, `TFSTATE_STORAGE_ACCOUNT`, `FABRIC_ADMINS` at repository
-   level (optional `AZURE_LOCATION`, `DEPLOY_TOOL`, `FABRIC_CAPACITY_ID`).
-9. **Turn it on** by setting `DEPLOY_ENABLED` to `true`, only after steps 1 to 8 are reviewed.
+### `ci.yml` (every pull request and push to `main`)
 
-## After the first deployment
+| Job | Steps |
+|---|---|
+| `lint` | `ruff check`, `ruff format --check`, `export_contracts.py --check` (agent card, MCP tools, TMDL, KQL schema), `cost_report.py --check`, `model_card.py --check`, `doc_outputs.py --check`, `secrets_scan.py` |
+| `test` | `pytest -q`, `scripts/demo.py`, `run_evals.py --out evals-out` (fails on any gate or regression), uploads the eval report |
+| `bicep` | installs the Bicep CLI and runs `bicep build infra/main.bicep` (compile only) |
 
-- Run the notebooks in order (`nb_bronze_ingest`, `nb_silver`, `nb_gold`) or schedule them with a
-  pipeline; point the Eventstream at the Event Hubs namespace and the KQL database.
-- Bind the semantic model to the Lakehouse SQL endpoint (Direct Lake) and apply the roles from
-  [`governance/access-policy.yaml`](../governance/access-policy.yaml).
-- Register the Lakehouse and Eventhouse as Purview data sources so scans fill the real catalog.
+### `infra.yml` (every pull request and push to `main`, or manual)
 
-## Rollback and teardown
+| Job | Steps |
+|---|---|
+| `terraform` | `terraform fmt -check -recursive`, `init -backend=false`, `validate`, `terraform test` (mocked providers, no Azure) |
+| `tflint` | `tflint --init`, then `tflint --call-module-type=all` with the azurerm ruleset |
+| `checkov` | `checkov -d infra/terraform --config-file .checkov.yaml`; findings not listed in the config fail the job |
+| `plan` | pull requests and manual runs only; plans dev with local state **only if** the three `AZURE_*` variables exist, otherwise reports that it was skipped |
 
-- **Rollback:** re-run `deploy.yml` from an earlier commit. Item definitions are in Git, so the
-  previous notebook or measure version is republished as it was.
-- **Teardown:** `teardown.yml` removes the Azure resources. The Fabric workspace is not an ARM
-  resource, so the job prints the REST call or portal step that removes it.
+### `deploy.yml` (push to `main` or manual)
+
+1. `preflight` writes the gate state to the job summary. All other jobs have
+   `if: vars.DEPLOY_ENABLED == 'true'`.
+2. `deploy-dev` runs in the `dev` GitHub Environment with `id-token: write`, logs in with
+   `azure/login` (OIDC), then calls [`.github/scripts/deploy.sh`](../.github/scripts/deploy.sh):
+   `provision` (Terraform apply with `envs/dev.tfvars`, or `az deployment group create` with the
+   Bicep parameters), `fabric` (find or create workspace `ws-fabricbi-dev` on the capacity and
+   publish items), `smoke`, and `suspend` (pause the dev capacity; input `pause_dev_capacity`,
+   default on).
+3. `deploy-prod` needs `deploy-dev`, runs in the `prod` environment (required reviewers) and
+   repeats provision, fabric and smoke with prod values. A manual run can stop after dev with
+   `promote_to_prod: false`.
+
+Manual inputs: `deploy_tool` (terraform or bicep), `promote_to_prod`, `pause_dev_capacity`,
+`location` (default eastus2).
+
+### `teardown.yml` (manual only)
+
+Runs `deploy.sh destroy` for one environment with the tool that created it. It is gated by
+`DEPLOY_ENABLED`, runs in the matching environment (so prod teardown needs approval) and only
+starts if the `confirm` input repeats the environment name.
+
+## Key files
+
+| File | What it does |
+|---|---|
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Application CI |
+| [`.github/workflows/infra.yml`](../.github/workflows/infra.yml) | Infrastructure CI |
+| [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Gated dev to prod deployment |
+| [`.github/workflows/teardown.yml`](../.github/workflows/teardown.yml) | Gated, confirmed teardown |
+| [`.github/scripts/deploy.sh`](../.github/scripts/deploy.sh) | `provision`, `fabric`, `smoke`, `suspend`, `destroy` |
+| [`scripts/publish_fabric_items.py`](../scripts/publish_fabric_items.py) | fabric-cicd publish of the five item types |
+| [`.checkov.yaml`](../.checkov.yaml) | Checkov configuration and the documented skips |
+
+## Code excerpts
+
+The gate on every deploy job:
+
+<!-- excerpt: .github/workflows/deploy.yml -->
+```yaml
+  deploy-dev:
+    needs: [preflight]
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+```
+
+The smoke test refuses key-based access:
+
+<!-- excerpt: .github/scripts/deploy.sh -->
+```bash
+  local_auth=$(az eventhubs namespace list -g "$RESOURCE_GROUP" --query "[?disableLocalAuth!=\`true\`] | length(@)" -o tsv)
+  [[ "$local_auth" == "0" ]] || { echo "::error::an Event Hubs namespace allows SAS keys"; exit 1; }
+```
+
+## Configuration and parameters
+
+| Variable (GitHub, no secrets) | Scope | Used by |
+|---|---|---|
+| `DEPLOY_ENABLED` | repository | deploy and teardown gate |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | per environment (and repository for `plan`) | OIDC login |
+| `TFSTATE_RESOURCE_GROUP`, `TFSTATE_STORAGE_ACCOUNT` | repository | Terraform backend |
+| `FABRIC_ADMINS` | repository | capacity administrators (UPNs or object ids, comma separated) |
+| `FABRIC_CAPACITY_ID` | optional | publish into an existing or trial capacity |
+| `AZURE_LOCATION`, `DEPLOY_TOOL` | optional | defaults eastus2 and terraform |
+
+## Run it locally
+
+The CI steps run on a laptop with `make check` (Python side), `make terraform` and `make bicep`.
+The deploy script can be read and dry-checked but needs an Azure login to do anything:
+
+```bash
+make check
+bash -n .github/scripts/deploy.sh && echo "deploy.sh parses"
+```
+
+Real output of the gate on a push to `main` (deploy workflow, preflight job log):
+
+```text
+##[notice]Deployment disabled (repository variable DEPLOY_ENABLED is not 'true'); deploy jobs are skipped.
+```
+
+## Tests and eval gates
+
+`tests/test_10_repo.py::test_workflows_gate_deploy_and_use_oidc` fails if any deploy job loses
+the `DEPLOY_ENABLED` condition or `id-token: write`, if prod stops using the `prod` environment,
+if any workflow mentions a client secret, or if teardown stops requiring confirmation.
+`test_generated_files_are_current` runs the same `--check` scripts as CI. The eval gate in
+`run_evals.py` is the release gate for the agent, ticket classifier, hot path and forecast.
+
+## Guardrails, security and governance
+
+- OIDC only: short-lived tokens, a federated credential per GitHub Environment, no client
+  secret anywhere (enforced by the test above and by `secrets_scan.py`).
+- `permissions: contents: read` by default; `id-token: write` only on deploy jobs.
+- Prod requires reviewers through the GitHub Environment, and deployments are serialised by a
+  `concurrency` group that does not cancel a running deploy.
+- Smoke tests fail the deploy if Event Hubs allows SAS keys or storage allows shared keys.
+
+## Observability
+
+Each workflow writes a job summary (gate state, plan summary, eval report artifact). Deployment
+history is in the GitHub Environments view. Azure activity logs record every change made by the
+deploy identity.
+
+## Failure modes
+
+| Failure | Handling |
+|---|---|
+| `DEPLOY_ENABLED` not set | Deploy jobs skip; preflight reports it |
+| OIDC variables missing | `plan` is skipped with a notice; deploy fails at login |
+| State storage variables missing | `deploy.sh` stops with `set repo/environment variable TFSTATE_...` |
+| Pipeline identity cannot see the capacity | `capacity ... not visible to the pipeline identity` and the job fails |
+| Item missing after publish | Smoke test names the missing item |
+| A step fails after the capacity started | `suspend` still runs (`if: always()`) so dev does not keep billing |
+| Rollback needed | Re-run `deploy.yml` from an earlier commit; item definitions in Git are republished as they were |
+
+## On real Fabric
+
+The workflows already target the real services: Azure Resource Manager through Terraform or
+Bicep, the Fabric REST API (`api.fabric.microsoft.com/v1`) for the workspace, and fabric-cicd for
+items. The Fabric tenant setting that allows service principals to use Fabric APIs must be on for
+the deploy identity ([implementation-guide.md](implementation-guide.md), step 11).
+
+## Limitations
+
+- The deploy and teardown jobs have never run; the commands are untested against Azure.
+- The Fabric workspace is not deleted by teardown; the job prints how to remove it.
+- No automatic rollback; the semantic model's roles and the notebook schedules are not set by
+  the pipeline.
 
 ## At a client
 
