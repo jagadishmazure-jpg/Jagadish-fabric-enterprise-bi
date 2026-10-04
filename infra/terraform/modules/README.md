@@ -12,3 +12,5 @@ Modules used by the root stack.
 | [`storage/`](storage/) | ADLS Gen2 landing storage |
 | [`fabric-capacity/`](fabric-capacity/) | Fabric capacity |
 | [`purview/`](purview/) | Purview account |
+
+Guide: [infrastructure.md](../../../docs/infrastructure.md).

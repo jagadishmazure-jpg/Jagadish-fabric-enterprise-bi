@@ -5,7 +5,7 @@ Key Vault in RBAC mode (no access policies), soft delete 7 days, purge protectio
 | File | What it does |
 |---|---|
 | [`README.md`](README.md) | This file |
-| [`main.tf`](main.tf) | Resources (and module calls for a root stack). |
+| [`main.tf`](main.tf) | Key Vault and the `Key Vault Secrets User` assignments |
 | [`outputs.tf`](outputs.tf) | Values exported to the caller / the pipeline. |
 | [`variables.tf`](variables.tf) | Inputs with types, defaults and validation rules. |
 | [`versions.tf`](versions.tf) | Terraform and provider version constraints. |

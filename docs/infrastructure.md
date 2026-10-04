@@ -22,7 +22,7 @@ flowchart TB
     PV[Purview account<br/>prod only]
     BU[budget 50/80/100%<br/>Terraform, when emails are set]
   end
-  ID -- Event Hubs Data Receiver --> EH
+  ID -- Azure Event Hubs Data Receiver --> EH
   ID -- Storage Blob Data Reader --> ST
   ID -- Key Vault Secrets User --> KV
   EH & IOT & KV -- diagnostic settings --> LA

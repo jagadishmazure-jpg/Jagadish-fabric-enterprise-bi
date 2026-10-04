@@ -8,3 +8,5 @@ Declared governance metadata, joined with what the pipeline recorded by `fabricb
 | [`catalog.yaml`](catalog.yaml) | Assets with owners, descriptions, sensitivity labels, glossary terms and column classifications |
 | [`access-policy.yaml`](access-policy.yaml) | Roles: row-level filters, hidden (object-level) columns, masked columns, cost limits |
 | [`principals.yaml`](principals.yaml) | Demo users and agents mapped to roles and regions (Entra groups in a real tenant) |
+
+Guides: [governance.md](../docs/governance.md) and, for the access policy, [data-agent.md](../docs/data-agent.md).

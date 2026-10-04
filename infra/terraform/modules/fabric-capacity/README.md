@@ -5,7 +5,7 @@
 | File | What it does |
 |---|---|
 | [`README.md`](README.md) | This file |
-| [`main.tf`](main.tf) | Resources |
+| [`main.tf`](main.tf) | `azurerm_fabric_capacity` with SKU and administrators |
 | [`outputs.tf`](outputs.tf) | Values returned to the root stack |
 | [`variables.tf`](variables.tf) | Inputs with types, defaults and validation |
 | [`versions.tf`](versions.tf) | Provider constraints |

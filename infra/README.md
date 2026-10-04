@@ -10,3 +10,5 @@ Azure resources for the platform, twice: Bicep here and Terraform in [`terraform
 | [`main.parameters.prod.json`](main.parameters.prod.json) | Prod: F4, Standard Event Hubs, S1 IoT Hub, ZRS, Purview, purge protection |
 | [`modules/`](modules/) | Bicep modules |
 | [`terraform/`](terraform/) | Terraform twin |
+
+Run `make bicep` and `make terraform` (no Azure needed). Guide: [infrastructure.md](../docs/infrastructure.md).

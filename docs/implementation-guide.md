@@ -226,8 +226,9 @@ done
 ```
 
 Then, in the portal, edit each `Role Based Access Control Administrator` assignment and choose
-**Constrain roles** so it can only assign `Event Hubs Data Receiver`, `Storage Blob Data Reader`
-and `Key Vault Secrets User`. In a client landing zone, scope both roles to pre-created resource
+**Constrain roles** so it can only assign `Azure Event Hubs Data Receiver`,
+`Storage Blob Data Reader` and `Key Vault Secrets User` (the roles the stack gives the ingestion
+identity and, in prod, the Purview account). In a client landing zone, scope both roles to pre-created resource
 groups instead of the subscription.
 
 **Verify:** `az role assignment list --assignee <client-id> --all -o table` shows exactly the two

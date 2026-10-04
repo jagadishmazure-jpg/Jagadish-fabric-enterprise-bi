@@ -1,6 +1,6 @@
 # `fabricbi.serve`
 
-Serving layer ([data-agent.md](../../../docs/data-agent.md)).
+Serving layer: semantic model, data agent and its guardrails, vector store, MCP and A2A.
 
 | File | What it does |
 |---|---|
@@ -14,3 +14,5 @@ Serving layer ([data-agent.md](../../../docs/data-agent.md)).
 | [`vector_store.py`](vector_store.py) | TF-IDF vector store with label filtering |
 | [`mcp_server.py`](mcp_server.py) | MCP server over stdio |
 | [`a2a.py`](a2a.py) | A2A agent card and JSON-RPC endpoint |
+
+Run: `python -m fabricbi.examples data_agent` (also `guardrails`, `semantic`, `vector_store`, `mcp` and `a2a`). Tests: `tests/test_07_semantic_agent.py`, `tests/test_08_mcp_a2a.py`. Guide: [data-agent.md](../../../docs/data-agent.md), plus [semantic-model.md](../../../docs/semantic-model.md) and [agent-interfaces.md](../../../docs/agent-interfaces.md).

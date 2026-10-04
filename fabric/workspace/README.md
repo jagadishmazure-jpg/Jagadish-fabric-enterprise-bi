@@ -13,3 +13,5 @@ One folder per Fabric item (`<name>.<ItemType>` with a `.platform` file). Item f
 | [`nb_gold.Notebook/`](nb_gold.Notebook/) | PySpark: star schema and daily aggregate |
 | [`sm_retail_sales.SemanticModel/`](sm_retail_sales.SemanticModel/) | Direct Lake semantic model; TMDL generated from `semantic-model/retail_sales.yaml` |
 | [`parameter.yml`](parameter.yml) | fabric-cicd find-and-replace values per environment |
+
+List and check them with `python -m fabricbi.examples fabric_items` and `pytest -q tests/test_10_repo.py -k fabric`. Guide: [fabric-items.md](../../docs/fabric-items.md).

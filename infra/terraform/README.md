@@ -32,3 +32,5 @@ terraform init -backend-config=envs/dev.backend.hcl \
 | [`envs/`](envs/) | Per-environment tfvars and backend keys |
 | [`modules/`](modules/) | Modules |
 | [`tests/`](tests/) | Offline plan tests |
+
+Guide with real validation output: [infrastructure.md](../../docs/infrastructure.md).

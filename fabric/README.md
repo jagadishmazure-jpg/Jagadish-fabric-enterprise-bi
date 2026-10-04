@@ -6,3 +6,5 @@ Fabric workspace item definitions, in the folder format Fabric Git integration w
 |---|---|
 | [`README.md`](README.md) | This file |
 | [`workspace/`](workspace/) | The items for workspace `ws-fabricbi-<env>` |
+
+Guide: [fabric-items.md](../docs/fabric-items.md).

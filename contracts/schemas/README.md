@@ -17,3 +17,5 @@ Schema contracts checked on every write by `fabricbi.coldpath.contracts`. `compa
 | [`gold.serving_sales_daily.yaml`](gold.serving_sales_daily.yaml) | Contract for `gold.serving_sales_daily` |
 | [`silver.pos_lines.yaml`](silver.pos_lines.yaml) | Contract for `silver.pos_lines` |
 | [`silver.products.yaml`](silver.products.yaml) | Contract for `silver.products` |
+
+Tests: `tests/test_03_contracts_quality.py`. Guide: [cold-path.md](../../docs/cold-path.md).

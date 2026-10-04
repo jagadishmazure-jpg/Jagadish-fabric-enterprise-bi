@@ -1,4 +1,4 @@
-# CAF-style names: <type>-<workload>-<env>-<region>-<instance>, e.g. rg-agentplat-dev-eus2-001.
+# CAF-style names: <type>-<workload>-<env>-<region>-<instance>, e.g. rg-fabricbi-dev-eus2-001.
 # Resources with tight length/charset rules (Key Vault, ACR, Storage) use a compressed form.
 # Globally unique names take an optional suffix so a fork can deploy without collisions.
 

@@ -11,3 +11,5 @@ Bicep modules called by `../main.bicep`.
 | [`storage.bicep`](storage.bicep) | ADLS Gen2 landing account, shared keys off, landing container |
 | [`fabric.bicep`](fabric.bicep) | Fabric capacity (`Microsoft.Fabric/capacities`) with administrators |
 | [`purview.bicep`](purview.bicep) | Microsoft Purview account with a system identity |
+
+Guide: [infrastructure.md](../../docs/infrastructure.md).

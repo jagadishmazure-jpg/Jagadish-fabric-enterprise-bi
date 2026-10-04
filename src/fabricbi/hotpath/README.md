@@ -8,3 +8,5 @@ Hot path ([hot-path.md](../../../docs/hot-path.md)).
 | [`__init__.py`](__init__.py) | Package marker |
 | [`stream.py`](stream.py) | Simulated POS and sensor events with planted incidents and late arrivals |
 | [`windows.py`](windows.py) | Tumbling windows, watermark, lateness, alert rules |
+
+Run: `python -m fabricbi.examples hotpath`. Tests: `tests/test_05_hotpath.py`. Guide: [hot-path.md](../../../docs/hot-path.md).

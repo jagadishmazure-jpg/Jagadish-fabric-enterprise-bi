@@ -60,7 +60,7 @@ ticket_category, device.
 |---|---|
 | [`semantic-model/retail_sales.yaml`](../semantic-model/retail_sales.yaml) | The single definition |
 | [`src/fabricbi/serve/semantic.py`](../src/fabricbi/serve/semantic.py) | `SemanticModel`: load, validate, `compile_sql`, `to_tmdl` |
-| [`scripts/export_contracts.py`](../scripts/export_contracts.py) | Writes the TMDL (and the JSON Schemas and tool definitions); `--check` for CI |
+| [`scripts/export_contracts.py`](../scripts/export_contracts.py) | Writes the TMDL (and the agent card, MCP tool list and KQL database schema); `--check` for CI |
 | [`fabric/workspace/sm_retail_sales.SemanticModel/`](../fabric/workspace/sm_retail_sales.SemanticModel/definition) | Generated TMDL in the Fabric Git-integration layout |
 
 ## Code excerpts
