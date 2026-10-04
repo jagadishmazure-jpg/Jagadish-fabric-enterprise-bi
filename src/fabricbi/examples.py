@@ -52,14 +52,16 @@ def domain() -> None:
     catalog = json.loads(src.catalog_json.read_text())
     sensors = pd.read_csv(src.sensor_csv)
     print(f"retailer: {catalog['retailer']}")
-    print(f"stores: {pos.store_id.nunique()} in regions {sorted(run.lake.read('gold', 'dim_store').region.unique())}")
+    print(
+        f"stores: {pos.store_id.nunique()} in regions {sorted(run.lake.read('gold', 'dim_store').region.unique())}"
+    )
     print(f"products: {len(catalog['products'])}, POS lines: {len(pos):,} over {src.days} days")
     print(f"freezer readings: {len(sensors):,} from {sensors.device_id.nunique()} devices")
     print(f"support tickets: {len(src.tickets_jsonl.read_text().splitlines())}")
     print("planted defects in the POS export:")
     print(f"  exact duplicate lines: {int(pos.duplicated().sum())}")
     print(f"  negative quantity: {int((pos.qty.astype(float) < 0).sum())}")
-    known = {p['sku'] for p in catalog['products']}
+    known = {p["sku"] for p in catalog["products"]}
     print(f"  unknown SKU: {int((~pos.sku.isin(known)).sum())}")
 
 
@@ -72,8 +74,10 @@ def coldpath() -> None:
         for t in run.lake.tables(layer):
             print(f"  {t:<34} {meta[t]['rows']:>7,} rows")
     print("quality reports:")
-    for name, r in run.ctx.dq_reports.items():
-        print(f"  {r.table:<24} in {r.rows_in:>6,}  out {r.rows_out:>6,}  quarantined {r.quarantined}  {r.by_rule}")
+    for r in run.ctx.dq_reports.values():
+        print(
+            f"  {r.table:<24} in {r.rows_in:>6,}  out {r.rows_out:>6,}  quarantined {r.quarantined}  {r.by_rule}"
+        )
     print(f"mirror lag after sync: {run.mirror_lag}")
     print(f"shortcuts: {sorted(run.lake.shortcuts())}")
 
@@ -89,7 +93,9 @@ def mirroring() -> None:
     first = m.sync(db, max_changes=300)
     print(f"partial sync: applied {first.applied}, checkpoint lsn {m.checkpoint}, lag {m.lag(db)}")
     rest = m.sync(db)
-    print(f"catch-up sync: applied {rest.applied} (inserts {rest.inserts}, updates {rest.updates}, deletes {rest.deletes}), lag {m.lag(db)}")
+    print(
+        f"catch-up sync: applied {rest.applied} (inserts {rest.inserts}, updates {rest.updates}, deletes {rest.deletes}), lag {m.lag(db)}"
+    )
     again = m.sync(db)
     print(f"replay: applied {again.applied}, tables {again.tables}")
     db.update("stores", "S001", {"store_name": "Fernhill Alder Falls Market"})
@@ -107,7 +113,9 @@ def hotpath() -> None:
     print(f"events accepted into windows: {hot.accepted:,}")
     print(f"late events (after their window was published): {len(hot.late_events)}")
     print(f"sales windows: {len(hot.sales_windows):,}, sensor windows: {len(hot.sensor_windows):,}")
-    print(f"constants: window {windows.WINDOW_SIZE}, lateness {windows.ALLOWED_LATENESS}, warm > {windows.WARM_THRESHOLD_C} C for {windows.WARM_WINDOWS} windows, offline after {windows.OFFLINE_AFTER}, spike z >= {windows.SPIKE_Z} and >= {windows.MIN_SPIKE_REVENUE}")
+    print(
+        f"constants: window {windows.WINDOW_SIZE}, lateness {windows.ALLOWED_LATENESS}, warm > {windows.WARM_THRESHOLD_C} C for {windows.WARM_WINDOWS} windows, offline after {windows.OFFLINE_AFTER}, spike z >= {windows.SPIKE_Z} and >= {windows.MIN_SPIKE_REVENUE}"
+    )
     for a in hot.alerts:
         print(f"alert {a.kind:<15} {a.key:<9} {a.window_start:%H:%M} {a.severity:<8} {a.detail}")
 
@@ -121,7 +129,11 @@ def lambda_view() -> None:
     print(f"batch cut-off: day {run.sources.days + 1} of the synthetic calendar")
     print(f"rows: {int((v.source == 'batch').sum())} batch + {int((v.source == 'speed').sum())} speed")
     print("store S002, last three days:")
-    tail = v[v.store_id == "S002"].tail(3).assign(date=lambda d: "day " + ((d.date - v.date.min()).dt.days + 1).astype(str))
+    tail = (
+        v[v.store_id == "S002"]
+        .tail(3)
+        .assign(date=lambda d: "day " + ((d.date - v.date.min()).dt.days + 1).astype(str))
+    )
     print(tail[["date", "net_sales", "transactions", "source", "is_partial"]].to_string(index=False))
     print(today_vs_typical(v, "S002"))
 
@@ -155,7 +167,9 @@ def tickets() -> None:
     ]
     for case, text, client in cases:
         c = classify("T", text, client)
-        print(f"{case:<17} -> label={c.label} review={c.needs_review} attempts={c.attempts} reason={c.reason or '-'}")
+        print(
+            f"{case:<17} -> label={c.label} review={c.needs_review} attempts={c.attempts} reason={c.reason or '-'}"
+        )
 
 
 @example
@@ -163,9 +177,13 @@ def semantic() -> None:
     from fabricbi.serve.semantic import Filter, QueryPlan, SemanticModel
 
     m = SemanticModel.load()
-    print(f"tables {len(m.tables)}, measures {len(m.measures)}, dimensions {len(m.dimensions)}, relationships {len(m.relationships)}")
+    print(
+        f"tables {len(m.tables)}, measures {len(m.measures)}, dimensions {len(m.dimensions)}, relationships {len(m.relationships)}"
+    )
     print(f"validation errors: {m.validate()}")
-    plan = QueryPlan(measures=["Net Sales"], group_by=["region"], filters=[Filter("category", "=", "Dairy")], limit=3)
+    plan = QueryPlan(
+        measures=["Net Sales"], group_by=["region"], filters=[Filter("category", "=", "Dairy")], limit=3
+    )
     print(m.compile_sql(plan))
     print(f"TMDL files: {sorted(m.to_tmdl())}")
 
@@ -226,13 +244,18 @@ def vector_store() -> None:
     n_prod = sum(c.source.startswith("contracts/") for c in vs.chunks)
     n_meas = sum(c.source.startswith("semantic-model/") for c in vs.chunks)
     print(f"indexed: every docs/*.md section, {n_prod} data product contracts, {n_meas} measure definitions")
-    for q in ("How is average basket calculated?", "How fresh is the live store operations data supposed to be?"):
+    for q in (
+        "How is average basket calculated?",
+        "How fresh is the live store operations data supposed to be?",
+    ):
         c, _ = vs.search(q, k=1, clearance="General")[0]
         print(f"{q!r} -> top hit {c.source} ({c.heading})")
     q = "Who owns the loyalty members data product?"
     for clearance in ("General", "Highly Confidential"):
         sources = [c.source for c, _ in vs.search(q, k=3, clearance=clearance)]
-        print(f"{q!r} with clearance {clearance}: loyalty contract returned = {'contracts/products/loyalty-members.yaml' in sources}")
+        print(
+            f"{q!r} with clearance {clearance}: loyalty contract returned = {'contracts/products/loyalty-members.yaml' in sources}"
+        )
 
 
 @example
@@ -242,14 +265,39 @@ def mcp() -> None:
     run = get_run()
     srv = McpServer(DataAgentTools(run.lake, run.ctx.lineage), _who("north.manager"))
     init = srv.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
-    print(f"initialize -> protocol {init['result']['protocolVersion']}, server {init['result']['serverInfo']}")
+    print(
+        f"initialize -> protocol {init['result']['protocolVersion']}, server {init['result']['serverInfo']}"
+    )
     tools = srv.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["tools"]
     print(f"tools/list -> {[t['name'] for t in tools]}")
-    r = srv.handle({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "ask_data_agent", "arguments": {"question": "Net sales by region"}}})
-    print(f"ask_data_agent as north.manager -> isError={r['result']['isError']} summary={r['result']['structuredContent']['summary']!r}")
-    r = srv.handle({"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "run_readonly_sql", "arguments": {"sql": "DROP TABLE dim_store"}}})
+    r = srv.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {"name": "ask_data_agent", "arguments": {"question": "Net sales by region"}},
+        }
+    )
+    print(
+        f"ask_data_agent as north.manager -> isError={r['result']['isError']} summary={r['result']['structuredContent']['summary']!r}"
+    )
+    r = srv.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {"name": "run_readonly_sql", "arguments": {"sql": "DROP TABLE dim_store"}},
+        }
+    )
     print(f"run_readonly_sql DROP -> isError={r['result']['isError']} {r['result']['structuredContent']}")
-    r = srv.handle({"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "search_docs", "arguments": {"query": "x", "path": "/etc"}}})
+    r = srv.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {"name": "search_docs", "arguments": {"query": "x", "path": "/etc"}},
+        }
+    )
     print(f"extra argument -> error {r['error']}")
 
 
@@ -261,16 +309,36 @@ def a2a() -> None:
     card = agent_card()
     ext = card["capabilities"]["extensions"][0]["params"]
     print(f"card: {card['name']}, skills {[s['id'] for s in card['skills']]}")
-    print(f"control plane: side effects {ext['side_effect_class']}, callers {ext['allowed_callers']}, tenants {ext['tenants']}")
+    print(
+        f"control plane: side effects {ext['side_effect_class']}, callers {ext['allowed_callers']}, tenants {ext['tenants']}"
+    )
     agent = A2AAgent(DataAgentTools(get_run().lake))
-    hdrs = {"x-tenant-id": "fernhill", "x-caller-agent": "experience-bff", "x-user-subject": "west.manager@fernhill.example", "traceparent": "00-" + "1" * 32 + "-" + "2" * 16 + "-01"}
+    hdrs = {
+        "x-tenant-id": "fernhill",
+        "x-caller-agent": "experience-bff",
+        "x-user-subject": "west.manager@fernhill.example",
+        "traceparent": "00-" + "1" * 32 + "-" + "2" * 16 + "-01",
+    }
 
     def send(skill, inp, **h):
-        body = {"jsonrpc": "2.0", "id": "1", "method": "SendMessage", "params": {"message": {"role": "ROLE_USER", "messageId": "m1", "parts": [{"data": {"skill": skill, "input": inp}}]}}}
+        body = {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "method": "SendMessage",
+            "params": {
+                "message": {
+                    "role": "ROLE_USER",
+                    "messageId": "m1",
+                    "parts": [{"data": {"skill": skill, "input": inp}}],
+                }
+            },
+        }
         return agent.handle(body, {**hdrs, **h})
 
     code, r = send("ask_sales_question", {"question": "Transactions by region"})
-    print(f"experience-bff as west.manager -> {code} {r['result']['message']['parts'][0]['data']['output']['summary']!r}")
+    print(
+        f"experience-bff as west.manager -> {code} {r['result']['message']['parts'][0]['data']['output']['summary']!r}"
+    )
     code, r = send("ask_sales_question", {"question": "Gross margin by region"})
     print(f"restricted measure -> {code} {r['result']['message']['parts'][0]['data']}")
     code, r = send("ask_sales_question", {"question": "Units"}, **{"x-caller-agent": "unknown-agent"})
@@ -295,7 +363,9 @@ def governance() -> None:
     d = cat.describe("gold.dim_customer")
     print(f"gold.dim_customer: owner {d['owner']}, label {d['label']}, classified {d['classified_columns']}")
     for p in load_products().values():
-        print(f"product {p['name']:<24} v{p['version']:<6} {p['sensitivity']:<20} freshness {p['slo']['freshness_hours']} h, external share {bool(p['sharing'].get('external_share'))}")
+        print(
+            f"product {p['name']:<24} v{p['version']:<6} {p['sensitivity']:<20} freshness {p['slo']['freshness_hours']} h, external share {bool(p['sharing'].get('external_share'))}"
+        )
 
 
 @example
@@ -325,8 +395,12 @@ def finops() -> None:
 
     for scale in (1.0, 5.0, 25.0):
         s = capacity.size(scale=scale)
-        print(f"load x{scale:g}: background {s.background_cu} CU + interactive peak {s.interactive_peak_cu} CU = {s.required_cu} CU -> F{s.sku} ({s.utilisation:.0%} used), pay-as-you-go ${s.monthly_payg_usd:,.0f}/month, reserved ${s.monthly_reserved_usd:,.0f}/month")
-    print(f"dev F2 paused outside working hours: ${capacity.size().monthly_dev_paused_usd:,.0f}/month (estimate)")
+        print(
+            f"load x{scale:g}: background {s.background_cu} CU + interactive peak {s.interactive_peak_cu} CU = {s.required_cu} CU -> F{s.sku} ({s.utilisation:.0%} used), pay-as-you-go ${s.monthly_payg_usd:,.0f}/month, reserved ${s.monthly_reserved_usd:,.0f}/month"
+        )
+    print(
+        f"dev F2 paused outside working hours: ${capacity.size().monthly_dev_paused_usd:,.0f}/month (estimate)"
+    )
 
 
 @example
@@ -336,16 +410,30 @@ def kql() -> None:
     from fabricbi.hotpath import windows
     from fabricbi.paths import KQL_DIR
 
-    py = {"window_size": windows.WINDOW_SIZE, "allowed_lateness": windows.ALLOWED_LATENESS, "warm_threshold_c": windows.WARM_THRESHOLD_C, "warm_windows": windows.WARM_WINDOWS, "offline_after": windows.OFFLINE_AFTER, "spike_z": windows.SPIKE_Z, "baseline_windows": windows.BASELINE_WINDOWS, "min_spike_revenue": windows.MIN_SPIKE_REVENUE}
+    py = {
+        "window_size": windows.WINDOW_SIZE,
+        "allowed_lateness": windows.ALLOWED_LATENESS,
+        "warm_threshold_c": windows.WARM_THRESHOLD_C,
+        "warm_windows": windows.WARM_WINDOWS,
+        "offline_after": windows.OFFLINE_AFTER,
+        "spike_z": windows.SPIKE_Z,
+        "baseline_windows": windows.BASELINE_WINDOWS,
+        "min_spike_revenue": windows.MIN_SPIKE_REVENUE,
+    }
     for f in sorted(KQL_DIR.glob("*.kql")):
         lets = re.findall(r"^let (\w+) = ([^;]+);", f.read_text(), re.M)
+
         def same(k, v):
             want = py[k]
             if isinstance(want, timedelta):
                 return v.endswith("m") and timedelta(minutes=int(v[:-1])) == want
             return float(v) == float(want)
 
-        shown = ", ".join(f"{k}={v}" + ((" (matches Python)" if same(k, v) else " (DIFFERS from Python)") if k in py else "") for k, v in lets)
+        shown = ", ".join(
+            f"{k}={v}"
+            + ((" (matches Python)" if same(k, v) else " (DIFFERS from Python)") if k in py else "")
+            for k, v in lets
+        )
         print(f"{f.name:<20} {shown or 'table definitions'}")
 
 
@@ -355,8 +443,12 @@ def fabric_items() -> None:
 
     for p in sorted(FABRIC_DIR.rglob(".platform")):
         meta = json.loads(p.read_text())
-        files = sorted(str(x.relative_to(p.parent)) for x in p.parent.rglob("*") if x.is_file() and x.name != ".platform")
-        print(f"{meta['metadata']['type']:<14} {meta['metadata']['displayName']:<18} logicalId {meta['config']['logicalId'][:8]}...  files {files[:3]}{' +' + str(len(files) - 3) + ' more' if len(files) > 3 else ''}")
+        files = sorted(
+            str(x.relative_to(p.parent)) for x in p.parent.rglob("*") if x.is_file() and x.name != ".platform"
+        )
+        print(
+            f"{meta['metadata']['type']:<14} {meta['metadata']['displayName']:<18} logicalId {meta['config']['logicalId'][:8]}...  files {files[:3]}{' +' + str(len(files) - 3) + ' more' if len(files) > 3 else ''}"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:

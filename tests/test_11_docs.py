@@ -26,7 +26,16 @@ COMPONENT_DOCS = [
     "infrastructure.md",
     "deployment.md",
 ]
-REQUIRED_SECTIONS = ["## Architecture", "## How it works", "## Key files", "## Run it locally", "## Tests", "## Failure modes", "## On real Fabric", "## Limitations"]
+REQUIRED_SECTIONS = [
+    "## Architecture",
+    "## How it works",
+    "## Key files",
+    "## Run it locally",
+    "## Tests",
+    "## Failure modes",
+    "## On real Fabric",
+    "## Limitations",
+]
 
 
 def _md():
@@ -74,7 +83,12 @@ def test_code_excerpts_are_copied_from_the_source():
 
 
 def test_example_outputs_and_test_counts_are_current():
-    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "doc_outputs.py"), "--check"], capture_output=True, text=True, timeout=600)
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "doc_outputs.py"), "--check"],
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
     assert r.returncode == 0, r.stdout + r.stderr
 
 

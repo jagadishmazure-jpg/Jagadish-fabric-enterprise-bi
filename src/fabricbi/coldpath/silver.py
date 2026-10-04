@@ -162,4 +162,5 @@ def build_silver(ctx: RunContext) -> dict[str, quality.DqReport]:
         ctx.write("silver", "support_tickets", tickets, ["bronze.support_tickets"], "nb_silver_tickets")
         reports["support_tickets"] = quality.DqReport("silver.support_tickets", len(t), len(tickets), 0)
     ctx.dq_reports.update(reports)
+    quality.enforce(reports)  # nothing reaches gold if a table quarantines more than 2% of its rows
     return reports

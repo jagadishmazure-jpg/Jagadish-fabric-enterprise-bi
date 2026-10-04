@@ -107,3 +107,11 @@ def test_silver_tickets_have_no_pii(lake):
     t = lake.read("silver", "support_tickets")
     assert not t.text_redacted.str.contains("@").any()
     assert "text" not in t.columns
+
+
+def test_quality_gate_stops_the_pipeline():
+    ok = quality.DqReport("silver.a", 1000, 990, 10)
+    bad = quality.DqReport("silver.b", 100, 90, 10)
+    quality.enforce({"a": ok})
+    with pytest.raises(quality.QualityGateError, match=r"silver\.b quarantined 10\.0%"):
+        quality.enforce({"a": ok, "b": bad})

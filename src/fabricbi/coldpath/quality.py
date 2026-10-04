@@ -73,3 +73,19 @@ def apply_rules(
         table=table, rows_in=len(df), rows_out=len(good), quarantined=len(quarantine), by_rule=by_rule
     )
     return good, quarantine, rep
+
+
+class QualityGateError(RuntimeError):
+    """Raised when a table quarantines more rows than its data product allows."""
+
+
+def enforce(reports: dict[str, DqReport], max_quarantine_rate: float = 0.02) -> None:
+    """Stop the pipeline before publishing if any table breaks the quarantine-rate gate."""
+    failed = [r for r in reports.values() if not r.passed(max_quarantine_rate)]
+    if failed:
+        raise QualityGateError(
+            "; ".join(
+                f"{r.table} quarantined {r.quarantine_rate:.1%} (limit {max_quarantine_rate:.0%})"
+                for r in failed
+            )
+        )

@@ -49,7 +49,9 @@ def output_of(name: str, cache: dict) -> str:
 
 
 def collected_tests() -> int:
-    r = subprocess.run([sys.executable, "-m", "pytest", "--collect-only", "-q"], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q"], cwd=ROOT, capture_output=True, text=True
+    )
     m = re.search(r"(\d+) tests? collected", r.stdout)
     if not m:
         raise SystemExit("could not count tests:\n" + r.stdout[-500:] + r.stderr[-500:])
@@ -82,12 +84,18 @@ def main(argv: list[str] | None = None) -> int:
             if claimed != n_tests:
                 wrong.append(f"{p.relative_to(ROOT)} claims {claimed} tests, pytest collects {n_tests}")
     if a.check and stale:
-        print("stale example output in:\n  " + "\n  ".join(map(str, stale)) + "\nrun: python scripts/doc_outputs.py")
+        print(
+            "stale example output in:\n  "
+            + "\n  ".join(map(str, stale))
+            + "\nrun: python scripts/doc_outputs.py"
+        )
     if wrong:
         print("\n".join(wrong))
     if (a.check and stale) or wrong:
         return 1
-    print(f"{blocks} example blocks {'current' if a.check else 'written'}; test count {n_tests} matches the docs")
+    print(
+        f"{blocks} example blocks {'current' if a.check else 'written'}; test count {n_tests} matches the docs"
+    )
     return 0
 
 
