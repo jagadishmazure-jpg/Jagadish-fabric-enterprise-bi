@@ -1,0 +1,13 @@
+table: silver.products
+description: Product catalog, typed and flattened. One row per SKU.
+primary_key: [sku]
+columns:
+  - {name: sku, type: string, nullable: false, unique: true}
+  - {name: product_name, type: string, nullable: false}
+  - {name: category, type: string, nullable: false, accepted_values: [Dairy, Frozen, Produce, Bakery, Pantry, Beverages, Unassigned]}
+  - {name: brand, type: string}
+  - {name: list_price, type: float, nullable: false, min: 0.01}
+  - {name: unit_cost, type: float, nullable: false, min: 0}
+  - {name: is_organic, type: bool}
+  - {name: is_frozen, type: bool}
+  - {name: allergens, type: string}

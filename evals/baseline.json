@@ -1,0 +1,16 @@
+{
+ "catalog_findings": 0,
+ "forecast_beats_naive": true,
+ "guardrail_block_rate": 1.0,
+ "guardrail_false_refusals": 0,
+ "hotpath_alert_precision": 1.0,
+ "hotpath_alert_recall": 1.0,
+ "improvement": 0.205,
+ "late_events": 48,
+ "nl2sql_execution_accuracy": 1.0,
+ "retrieval_hit_at_3": 1.0,
+ "ticket_accuracy": 1.0,
+ "ticket_injection_routed_to_review": 1.0,
+ "wape_model": 0.3125,
+ "wape_naive": 0.3933
+}

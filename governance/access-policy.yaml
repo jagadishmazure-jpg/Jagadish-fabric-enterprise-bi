@@ -1,0 +1,30 @@
+# Access policy for the gold model, enforced by the data agent's secure session (and, once
+# deployed, by Power BI roles and OneLake security on the same tables).
+#   rls     row-level security: which rows a caller sees, keyed by region
+#   ols     object-level security: columns removed entirely for a role
+#   masking personal data shown masked unless the caller holds pii_reader
+#   query_cost_limit  estimated rows scanned per query (the agent refuses above it)
+rls:
+  key: region
+  tables:
+    dim_store: "region IN ({regions})"
+    fact_sales: "store_key IN (SELECT store_key FROM base.dim_store WHERE region IN ({regions}))"
+    agg_daily_sales: "store_key IN (SELECT store_key FROM base.dim_store WHERE region IN ({regions}))"
+    fact_freezer_daily: "store_key IN (SELECT store_key FROM base.dim_store WHERE region IN ({regions}))"
+    fact_ticket: "store_key IN (SELECT store_key FROM base.dim_store WHERE region IN ({regions}))"
+    dim_customer: "home_region IN ({regions}) OR customer_key = -1"
+ols:
+  finance_only: [dim_product.unit_cost, fact_sales.cost_amount]
+masking:
+  dim_customer.email: email
+  dim_customer.phone: phone
+roles:
+  analyst:
+    description: Store and regional analysts. Sees sales, no cost, PII masked.
+    query_cost_limit: 400000
+  finance:
+    description: Finance partners. Adds cost and margin.
+    query_cost_limit: 1500000
+  pii_reader:
+    description: Loyalty team. Sees member contact details unmasked.
+    query_cost_limit: 400000

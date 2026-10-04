@@ -1,0 +1,46 @@
+/// Products and categories. unit_cost is visible to the finance role only.
+table dim_product
+
+	column product_key
+		dataType: int64
+		isHidden
+		sourceColumn: product_key
+
+	column sku
+		dataType: string
+		sourceColumn: sku
+
+	column product_name
+		dataType: string
+		sourceColumn: product_name
+
+	column category
+		dataType: string
+		sourceColumn: category
+
+	column brand
+		dataType: string
+		sourceColumn: brand
+
+	column list_price
+		dataType: decimal
+		sourceColumn: list_price
+
+	column unit_cost
+		dataType: decimal
+		sourceColumn: unit_cost
+
+	column is_organic
+		dataType: boolean
+		sourceColumn: is_organic
+
+	column is_frozen
+		dataType: boolean
+		sourceColumn: is_frozen
+
+	partition dim_product = entity
+		mode: directLake
+		source
+			entityName: dim_product
+			schemaName: gold
+			expressionSource: DatabaseQuery

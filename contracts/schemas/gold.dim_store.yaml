@@ -1,0 +1,10 @@
+table: gold.dim_store
+description: Store dimension. Region is the row-level security key.
+primary_key: [store_key]
+columns:
+  - {name: store_key, type: int, nullable: false, unique: true}
+  - {name: store_id, type: string, nullable: false, unique: true}
+  - {name: store_name, type: string, nullable: false}
+  - {name: city, type: string, nullable: false}
+  - {name: region, type: string, nullable: false, accepted_values: [North, South, East, West]}
+  - {name: square_meters, type: int, nullable: false, min: 100}

@@ -1,0 +1,15 @@
+name: retail-sales
+version: 1.2.0
+domain: commercial
+owner: commercial-analytics
+description: Sales at line grain with store, product and calendar dimensions, and a daily aggregate. The main dataset behind the sales report and the data agent.
+output_ports: [gold.fact_sales, gold.dim_store, gold.dim_product, gold.dim_date, gold.agg_daily_sales]
+schema_contracts: [gold.fact_sales, gold.dim_store, gold.dim_product, gold.dim_date, gold.agg_daily_sales]
+sensitivity: Confidential
+slo:
+  freshness_hours: 26
+  max_quarantine_rate: 0.02
+consumers: [powerbi.retail-sales-report, agent.fabric-data-agent, ml.demand_forecast]
+sharing:
+  internal_shortcut: true
+  external_share: false

@@ -1,0 +1,15 @@
+name: loyalty-members
+version: 1.0.0
+domain: customer
+owner: loyalty
+description: Loyalty member dimension with contact details. Contact columns are masked for everyone without the pii_reader role.
+output_ports: [gold.dim_customer]
+schema_contracts: [gold.dim_customer]
+sensitivity: Highly Confidential
+slo:
+  freshness_hours: 26
+  max_quarantine_rate: 0.0
+consumers: [crm.loyalty-campaigns]
+sharing:
+  internal_shortcut: false
+  external_share: false

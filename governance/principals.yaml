@@ -1,0 +1,10 @@
+# Identity stand-in: maps a signed-in subject to roles and regions. In Azure these come from
+# Microsoft Entra ID group claims on the caller's token; offline this file plays that part.
+# All people and addresses are fictional.
+principals:
+  west.manager@fernhill.example: {roles: [analyst], regions: [West]}
+  north.manager@fernhill.example: {roles: [analyst], regions: [North]}
+  finance.partner@fernhill.example: {roles: [analyst, finance], regions: ["*"]}
+  loyalty.lead@fernhill.example: {roles: [analyst, pii_reader], regions: [North, South]}
+  exec.viewer@fernhill.example: {roles: [analyst], regions: ["*"]}
+default: {roles: [], regions: []}

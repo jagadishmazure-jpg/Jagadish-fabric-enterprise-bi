@@ -1,0 +1,61 @@
+# Application CI: runs on every pull request and on main. Fully offline: synthetic data, local
+# Parquet + DuckDB as the OneLake stand-in, mocked Foundry model. Nothing touches Azure.
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check . && ruff format --check .
+      - name: Generated files are current (agent card, MCP tools, TMDL, KQL schema)
+        run: python scripts/export_contracts.py --check
+      - name: Cost estimate and model card are current
+        run: python scripts/cost_report.py --check && python scripts/model_card.py --check
+      - name: Secrets scan
+        run: python scripts/secrets_scan.py
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev]"
+      - name: Tests (offline, synthetic data)
+        run: pytest -q
+      - name: End-to-end demo
+        run: python scripts/demo.py
+      - name: Eval gate (fails the build on regression)
+        run: python scripts/run_evals.py --out evals-out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: eval-report, path: evals-out }
+
+  bicep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bicep CLI (skip gracefully if unavailable)
+        id: install
+        continue-on-error: true
+        run: |
+          curl -fsSLo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x bicep && sudo mv bicep /usr/local/bin/bicep && bicep --version
+      - name: Build infra/main.bicep (compile only, never deployed)
+        if: steps.install.outcome == 'success'
+        run: bicep build infra/main.bicep --stdout > /dev/null
+      - name: Bicep not available
+        if: steps.install.outcome != 'success'
+        run: echo "::warning::Bicep CLI could not be installed; infra build skipped"

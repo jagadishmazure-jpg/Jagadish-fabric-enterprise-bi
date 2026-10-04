@@ -1,0 +1,11 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+
+ref table fact_sales
+ref table fact_freezer_daily
+ref table fact_ticket
+ref table dim_store
+ref table dim_product
+ref table dim_customer
+ref table dim_date

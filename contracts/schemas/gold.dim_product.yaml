@@ -1,0 +1,13 @@
+table: gold.dim_product
+description: Product dimension. unit_cost is restricted to the finance role (object-level security).
+primary_key: [product_key]
+columns:
+  - {name: product_key, type: int, nullable: false, unique: true}
+  - {name: sku, type: string, nullable: false, unique: true}
+  - {name: product_name, type: string, nullable: false}
+  - {name: category, type: string, nullable: false}
+  - {name: brand, type: string}
+  - {name: list_price, type: float, nullable: false, min: 0.01}
+  - {name: unit_cost, type: float, nullable: false, min: 0}
+  - {name: is_organic, type: bool}
+  - {name: is_frozen, type: bool}

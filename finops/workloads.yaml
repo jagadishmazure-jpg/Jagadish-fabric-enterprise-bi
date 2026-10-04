@@ -1,0 +1,28 @@
+# Fabric capacity sizing inputs. EVERY NUMBER HERE IS AN ASSUMPTION for planning, not a
+# measurement: nothing has run on a real capacity. Replace them with figures from the Fabric
+# Capacity Metrics app after a pilot week.
+#   kind: background (smoothed over 24 hours) or interactive (smoothed over minutes, so peaks matter)
+#   cu_seconds_per_run x runs_per_day = daily capacity-unit seconds
+assumptions:
+  price_per_cu_hour_usd: 0.18      # illustrative pay-as-you-go list price; varies by region, check the pricing page
+  reserved_discount: 0.41          # illustrative one-year reservation discount
+  hours_per_month: 730
+  business_hours_per_day: 10       # interactive load is assumed to fall in these hours
+  interactive_peak_factor: 3.0     # busiest 5 minutes vs the business-hours average
+  target_utilisation: 0.8          # keep 20% headroom before throttling
+  dev_hours_per_month: 220         # dev capacity paused outside 10 h x 22 working days
+skus: [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+workloads:
+  eventstream_ingest:   {kind: background,  cu_seconds_per_run: 1100, runs_per_day: 24, note: "Eventstream from Event Hubs and IoT Hub, per hour of streaming"}
+  eventhouse_kql:       {kind: interactive, cu_seconds_per_run: 6,    runs_per_day: 1500, note: "KQL querysets, live tiles and alert queries"}
+  spark_medallion:      {kind: background,  cu_seconds_per_run: 4800, runs_per_day: 1, note: "bronze -> silver -> gold notebooks, 8 vCores for 20 minutes"}
+  pipeline_copy:        {kind: background,  cu_seconds_per_run: 300,  runs_per_day: 4, note: "Data Factory copy activities into the landing zone"}
+  mirroring_queries:    {kind: interactive, cu_seconds_per_run: 4,    runs_per_day: 200, note: "queries on the mirrored replica (replication itself is assumed not to consume capacity)"}
+  warehouse_sql:        {kind: interactive, cu_seconds_per_run: 15,   runs_per_day: 200, note: "T-SQL scripts and ad hoc analysis"}
+  powerbi_directlake:   {kind: interactive, cu_seconds_per_run: 2,    runs_per_day: 3000, note: "report visuals over the Direct Lake semantic model"}
+  data_agent:           {kind: interactive, cu_seconds_per_run: 20,   runs_per_day: 150, note: "data agent questions (SQL side only; model tokens are billed by Foundry)"}
+  ml_training:          {kind: background,  cu_seconds_per_run: 3600, runs_per_day: 0.14, note: "weekly forecast retrain"}
+foundry:
+  questions_per_day: 150
+  tokens_per_question: 2500
+  usd_per_million_tokens: 0.6     # illustrative blended input/output price for a small model

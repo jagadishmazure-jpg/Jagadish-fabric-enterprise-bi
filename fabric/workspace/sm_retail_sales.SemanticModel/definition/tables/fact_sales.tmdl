@@ -1,0 +1,70 @@
+/// One row per point-of-sale line.
+table fact_sales
+
+	/// Sales after line discounts.
+	measure 'Net Sales' = SUM(fact_sales[net_amount])
+		formatString: \$#,0.00
+
+	/// Items sold.
+	measure 'Units' = SUM(fact_sales[qty])
+		formatString: #,0
+
+	/// Number of checkouts.
+	measure 'Transactions' = DISTINCTCOUNT(fact_sales[txn_id])
+		formatString: #,0
+
+	/// Net sales per checkout.
+	measure 'Average Basket' = DIVIDE([Net Sales], [Transactions])
+		formatString: \$#,0.00
+
+	/// Net sales minus cost of goods. Finance only.
+	measure 'Gross Margin' = SUM(fact_sales[net_amount]) - SUM(fact_sales[cost_amount])
+		formatString: \$#,0.00
+
+	column sales_line_id
+		dataType: string
+		isHidden
+		sourceColumn: sales_line_id
+
+	column txn_id
+		dataType: string
+		sourceColumn: txn_id
+
+	column date_key
+		dataType: int64
+		isHidden
+		sourceColumn: date_key
+
+	column store_key
+		dataType: int64
+		isHidden
+		sourceColumn: store_key
+
+	column product_key
+		dataType: int64
+		isHidden
+		sourceColumn: product_key
+
+	column customer_key
+		dataType: int64
+		isHidden
+		sourceColumn: customer_key
+
+	column qty
+		dataType: int64
+		sourceColumn: qty
+
+	column net_amount
+		dataType: decimal
+		sourceColumn: net_amount
+
+	column cost_amount
+		dataType: decimal
+		sourceColumn: cost_amount
+
+	partition fact_sales = entity
+		mode: directLake
+		source
+			entityName: fact_sales
+			schemaName: gold
+			expressionSource: DatabaseQuery

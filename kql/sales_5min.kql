@@ -1,0 +1,9 @@
+// Sales per store in 5-minute event-time windows (the hot-path aggregate behind the live tile).
+// Python twin: fabricbi.hotpath.windows (WINDOW_SIZE).
+let window_size = 5m;
+let lookback = 6h;
+pos_events
+| where event_time > ago(lookback)
+| summarize revenue = round(sum(basket_value), 2), transactions = count()
+    by store_id, window_start = bin(event_time, window_size)
+| order by store_id asc, window_start asc

@@ -1,0 +1,78 @@
+# Catalog entries: owner, sensitivity label and description for every asset the pipeline writes,
+# plus column classifications. Lineage is not declared here; it is recorded from the pipeline run.
+# Label rule (checked in tests): an asset is at least as restricted as its strictest input,
+# unless it declares `declassify` with the reason (for example, PII removed by a transform).
+glossary:
+  Net Sales: Sales after line discounts, before tax.
+  Transaction: One checkout at a till or in the app.
+  Warm hours: Hours a freezer spent above the warm threshold of -12 C.
+  Cut-off: The end of the last batch load; the hot path covers everything after it.
+classifications:
+  gold.dim_customer.email: Email Address
+  gold.dim_customer.phone: Phone Number
+  gold.dim_customer.first_name: Person Name
+  bronze.support_tickets.text: Free Text With Personal Data
+  silver.customers.email: Email Address
+  silver.customers.phone: Phone Number
+assets:
+  # ---- sources ----
+  source.pos_export: {owner: store-systems, label: Confidential, description: Nightly point-of-sale export (CSV).}
+  source.product_catalog: {owner: merchandising, label: General, description: Product catalog (JSON).}
+  source.freezer_history: {owner: facilities, label: General, description: Hourly freezer telemetry history (CSV).}
+  source.support_tickets: {owner: customer-care, label: Highly Confidential, description: Support tickets with free text.}
+  source.opdb.stores: {owner: store-systems, label: General, description: Store master in the operational database.}
+  source.opdb.customers: {owner: loyalty, label: Highly Confidential, description: Loyalty members in the operational database.}
+  source.event_hubs.pos: {owner: store-systems, label: General, description: Live checkout events (no customer ids).}
+  source.iot_hub.freezers: {owner: facilities, label: General, description: Live freezer readings.}
+  # ---- mirrored replica ----
+  mirror.stores: {owner: store-systems, label: General, description: Mirrored store master.}
+  mirror.customers: {owner: loyalty, label: Highly Confidential, description: Mirrored loyalty members.}
+  # ---- bronze ----
+  bronze.pos_lines: {owner: data-platform, label: Confidential, description: Raw POS lines as delivered.}
+  bronze.product_catalog: {owner: data-platform, label: General, description: Raw catalog JSON per product.}
+  bronze.freezer_readings: {owner: data-platform, label: General, description: Raw freezer history.}
+  bronze.support_tickets: {owner: data-platform, label: Highly Confidential, description: Raw tickets including personal data.}
+  # ---- silver ----
+  silver.stores: {owner: data-platform, label: General, description: Stores via shortcut to the mirror.}
+  silver.customers: {owner: data-platform, label: Highly Confidential, description: Loyalty members via shortcut to the mirror.}
+  silver.products: {owner: data-platform, label: General, description: Typed, flattened catalog.}
+  silver.pos_lines: {owner: data-platform, label: Confidential, description: Typed and validated POS lines.}
+  silver.pos_lines_quarantine: {owner: data-platform, label: Confidential, description: POS lines rejected by quality rules, with the rule name.}
+  silver.freezer_readings: {owner: data-platform, label: General, description: Typed freezer history.}
+  silver.support_tickets:
+    owner: data-platform
+    label: General
+    description: Tickets with emails and phone numbers redacted.
+    declassify: personal data is redacted by the silver transform
+  # ---- gold ----
+  gold.dim_date:
+    owner: commercial-analytics
+    label: General
+    description: Calendar dimension.
+    declassify: only the date range is taken from sales
+  gold.dim_store: {owner: commercial-analytics, label: General, description: Store dimension.}
+  gold.dim_product: {owner: commercial-analytics, label: General, description: Product dimension (unit cost is finance-only by policy).}
+  gold.dim_customer: {owner: loyalty, label: Highly Confidential, description: Loyalty member dimension.}
+  gold.fact_sales:
+    owner: commercial-analytics
+    label: Confidential
+    description: Sales fact at line grain.
+    declassify: holds the customer surrogate key only, no contact details
+  gold.fact_freezer_daily: {owner: facilities, label: General, description: Daily freezer summary.}
+  gold.agg_daily_sales:
+    owner: commercial-analytics
+    label: General
+    description: Daily sales per store and category.
+    declassify: aggregated to store, day and category; no customer keys
+  gold.fact_ticket: {owner: customer-care, label: General, description: Classified support tickets (no text).}
+  gold.serving_sales_daily: {owner: commercial-analytics, label: General, description: Lambda view of batch and live sales.}
+  gold.forecast_sales: {owner: commercial-analytics, label: General, description: Seven-day-ahead demand forecast.}
+  # ---- hot path (Eventhouse) ----
+  eventhouse.sales_windows: {owner: store-operations, label: General, description: 5-minute sales per store.}
+  eventhouse.sensor_windows: {owner: facilities, label: General, description: 5-minute freezer summaries.}
+  eventhouse.hot_alerts: {owner: store-operations, label: General, description: Freezer, sensor and sales alerts.}
+  # ---- AI assets ----
+  ml.demand_forecast: {owner: commercial-analytics, label: General, description: Gradient-boosted demand model.}
+  ml.ticket_classifier: {owner: customer-care, label: General, description: Foundry ticket classifier (mocked).}
+  index.docs_vector: {owner: data-platform, label: General, description: Vector index over docs, contracts and the semantic model.}
+  docs.repository: {owner: data-platform, label: Public, description: Project documentation.}

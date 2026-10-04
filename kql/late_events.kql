@@ -1,0 +1,9 @@
+// Late arrivals: events that reached the Eventhouse after their window had closed.
+// Python twin: fabricbi.hotpath.windows (ALLOWED_LATENESS); late events go to a dead-letter list.
+let allowed_lateness = 5m;
+let window_size = 5m;
+union withsource = source pos_events, freezer_readings
+| extend arrived = ingestion_time()
+| extend window_end = bin(event_time, window_size) + window_size
+| where arrived > window_end + allowed_lateness
+| summarize late = count(), worst_delay = max(arrived - event_time) by source, bin(arrived, 1h)

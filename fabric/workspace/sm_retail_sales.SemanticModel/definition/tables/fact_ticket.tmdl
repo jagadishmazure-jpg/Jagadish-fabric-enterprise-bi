@@ -1,0 +1,43 @@
+/// Support tickets with the category assigned by the classifier.
+table fact_ticket
+
+	/// Support tickets opened.
+	measure 'Tickets' = COUNTROWS(fact_ticket)
+		formatString: #,0
+
+	column ticket_id
+		dataType: string
+		sourceColumn: ticket_id
+
+	column date_key
+		dataType: int64
+		isHidden
+		sourceColumn: date_key
+
+	column store_key
+		dataType: int64
+		isHidden
+		sourceColumn: store_key
+
+	column channel
+		dataType: string
+		sourceColumn: channel
+
+	column category
+		dataType: string
+		sourceColumn: category
+
+	column confidence
+		dataType: double
+		sourceColumn: confidence
+
+	column needs_review
+		dataType: boolean
+		sourceColumn: needs_review
+
+	partition fact_ticket = entity
+		mode: directLake
+		source
+			entityName: fact_ticket
+			schemaName: gold
+			expressionSource: DatabaseQuery

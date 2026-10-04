@@ -1,0 +1,44 @@
+[project]
+name = "fabric-enterprise-bi"
+version = "0.1.0"
+description = "Enterprise BI on Microsoft Fabric, built offline: hot and cold paths into a OneLake stand-in, a medallion Lakehouse and star schema, enrichment, a semantic model and a governed data agent exposed over MCP and A2A."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Jagadish Meduri" }]
+requires-python = ">=3.11"
+# The Azure and Fabric SDKs are NOT dependencies: everything runs offline on synthetic data.
+# scripts/publish_fabric_items.py needs fabric-cicd and azure-identity, installed by deploy.yml only.
+dependencies = [
+  "pandas==3.0.6",
+  "pyarrow==25.0.1",
+  "duckdb==1.5.6",
+  "numpy==2.5.3",
+  "scikit-learn==1.9.1",
+  "pyyaml==6.0.3",
+  "sqlglot==30.21.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "ruff==0.16.10"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fabricbi"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "scripts", "tests"]
+extend-exclude = ["fabric"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "B008", "E501"]

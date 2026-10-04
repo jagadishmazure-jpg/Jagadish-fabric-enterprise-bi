@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+.azure/
+evals-out/
+*.egg-info/
+dist/
+build/
+infra/*.json
+!infra/main.parameters.*.json
+.onelake/
+.onelake-demo/
+# internal reference material never belongs in this repo
+refs/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+backend_override.tf

@@ -1,0 +1,13 @@
+table: gold.fact_sales
+description: One row per point-of-sale line.
+primary_key: [sales_line_id]
+columns:
+  - {name: sales_line_id, type: string, nullable: false, unique: true}
+  - {name: txn_id, type: string, nullable: false}
+  - {name: date_key, type: int, nullable: false}
+  - {name: store_key, type: int, nullable: false}
+  - {name: product_key, type: int, nullable: false}
+  - {name: customer_key, type: int, nullable: false}
+  - {name: qty, type: int, nullable: false, min: 1}
+  - {name: net_amount, type: float, nullable: false, min: 0}
+  - {name: cost_amount, type: float, nullable: false, min: 0}

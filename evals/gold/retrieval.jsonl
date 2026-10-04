@@ -1,0 +1,10 @@
+{"query": "How is average basket calculated?", "expect_source": "semantic-model/retail_sales.yaml"}
+{"query": "How fresh is the live store operations data supposed to be?", "expect_source": "contracts/products/store-operations-live.yaml"}
+{"query": "Who owns the loyalty member contact details?", "expect_source": "contracts/products/loyalty-members.yaml"}
+{"query": "What happens to events that arrive after the watermark?", "expect_source": "docs/hot-path.md"}
+{"query": "How does row-level security by region work in the data agent?", "expect_source": "docs/data-agent.md"}
+{"query": "Which Fabric capacity SKU should we start with and what does it cost?", "expect_source": "docs/cost-estimate.md"}
+{"query": "How are mirrored database changes applied idempotently?", "expect_source": "docs/cold-path.md"}
+{"query": "What is gross margin and who can see it?", "expect_source": "semantic-model/retail_sales.yaml"}
+{"query": "How do sensitivity labels propagate through lineage?", "expect_source": "docs/governance.md"}
+{"query": "How are Fabric workspace items deployed by the pipeline?", "expect_source": "docs/deployment.md"}

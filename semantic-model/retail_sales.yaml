@@ -1,0 +1,129 @@
+# Semantic model for the gold star schema. One definition drives three things:
+#   * the Power BI semantic model (Direct Lake over the gold tables), exported as TMDL into
+#     fabric/workspace/sm_retail_sales.SemanticModel/definition/ by scripts/export_contracts.py
+#   * the SQL the data agent runs locally (each measure has a DAX and a SQL form)
+#   * the agent's vocabulary (descriptions and synonyms are what the NL-to-SQL step matches on)
+model: Fernhill Retail Sales
+description: Sales, freezer health and support tickets for the fictional Fernhill Grocers chain.
+storage_mode: directLake
+culture: en-US
+
+tables:
+  fact_sales:
+    source: gold.fact_sales
+    description: One row per point-of-sale line.
+    columns: {sales_line_id: string, txn_id: string, date_key: int64, store_key: int64, product_key: int64, customer_key: int64, qty: int64, net_amount: decimal, cost_amount: decimal}
+    hidden: [sales_line_id, date_key, store_key, product_key, customer_key]
+  fact_freezer_daily:
+    source: gold.fact_freezer_daily
+    description: Daily temperature summary per freezer.
+    columns: {date_key: int64, store_key: int64, device_id: string, avg_temp_c: double, max_temp_c: double, hours_above_threshold: int64}
+    hidden: [date_key, store_key]
+  fact_ticket:
+    source: gold.fact_ticket
+    description: Support tickets with the category assigned by the classifier.
+    columns: {ticket_id: string, date_key: int64, store_key: int64, channel: string, category: string, confidence: double, needs_review: boolean}
+    hidden: [date_key, store_key]
+  dim_store:
+    source: gold.dim_store
+    description: Stores. Region is the row-level security key.
+    columns: {store_key: int64, store_id: string, store_name: string, city: string, region: string, square_meters: int64}
+    hidden: [store_key]
+  dim_product:
+    source: gold.dim_product
+    description: Products and categories. unit_cost is visible to the finance role only.
+    columns: {product_key: int64, sku: string, product_name: string, category: string, brand: string, list_price: decimal, unit_cost: decimal, is_organic: boolean, is_frozen: boolean}
+    hidden: [product_key]
+  dim_customer:
+    source: gold.dim_customer
+    description: Loyalty members. email and phone are personal data and are masked unless the caller may read PII.
+    columns: {customer_key: int64, customer_id: string, first_name: string, email: string, phone: string, tier: string, home_region: string}
+    hidden: [customer_key]
+  dim_date:
+    source: gold.dim_date
+    description: Calendar.
+    columns: {date_key: int64, date: dateTime, day_of_week: string, iso_week: int64, month: int64, is_weekend: boolean}
+    hidden: [date_key]
+
+relationships:
+  - {from: fact_sales.store_key, to: dim_store.store_key}
+  - {from: fact_sales.product_key, to: dim_product.product_key}
+  - {from: fact_sales.customer_key, to: dim_customer.customer_key}
+  - {from: fact_sales.date_key, to: dim_date.date_key}
+  - {from: fact_freezer_daily.store_key, to: dim_store.store_key}
+  - {from: fact_freezer_daily.date_key, to: dim_date.date_key}
+  - {from: fact_ticket.store_key, to: dim_store.store_key}
+  - {from: fact_ticket.date_key, to: dim_date.date_key}
+
+measures:
+  - name: Net Sales
+    table: fact_sales
+    dax: SUM(fact_sales[net_amount])
+    sql: ROUND(SUM(fact_sales.net_amount), 2)
+    format: "\\$#,0.00"
+    description: Sales after line discounts.
+    synonyms: [net sales, sales, revenue, turnover, takings]
+  - name: Units
+    table: fact_sales
+    dax: SUM(fact_sales[qty])
+    sql: SUM(fact_sales.qty)
+    format: "#,0"
+    description: Items sold.
+    synonyms: [units, items sold, quantity, volume]
+  - name: Transactions
+    table: fact_sales
+    dax: DISTINCTCOUNT(fact_sales[txn_id])
+    sql: COUNT(DISTINCT fact_sales.txn_id)
+    format: "#,0"
+    description: Number of checkouts.
+    synonyms: [transactions, baskets, checkouts, orders]
+  - name: Average Basket
+    table: fact_sales
+    dax: DIVIDE([Net Sales], [Transactions])
+    sql: ROUND(SUM(fact_sales.net_amount) / NULLIF(COUNT(DISTINCT fact_sales.txn_id), 0), 2)
+    format: "\\$#,0.00"
+    description: Net sales per checkout.
+    synonyms: [average basket, basket size, avg basket, spend per visit]
+  - name: Gross Margin
+    table: fact_sales
+    dax: SUM(fact_sales[net_amount]) - SUM(fact_sales[cost_amount])
+    sql: ROUND(SUM(fact_sales.net_amount) - SUM(fact_sales.cost_amount), 2)
+    format: "\\$#,0.00"
+    description: Net sales minus cost of goods. Finance only.
+    synonyms: [gross margin, margin, profit]
+    requires_role: finance
+  - name: Average Freezer Temp
+    table: fact_freezer_daily
+    dax: AVERAGE(fact_freezer_daily[avg_temp_c])
+    sql: ROUND(AVG(fact_freezer_daily.avg_temp_c), 2)
+    format: "0.0"
+    description: Mean of daily average freezer temperatures in degrees Celsius.
+    synonyms: [freezer temperature, freezer temp, average temperature]
+  - name: Warm Hours
+    table: fact_freezer_daily
+    dax: SUM(fact_freezer_daily[hours_above_threshold])
+    sql: SUM(fact_freezer_daily.hours_above_threshold)
+    format: "#,0"
+    description: Hours a freezer spent above the warm threshold.
+    synonyms: [warm hours, hours above threshold, freezer warm]
+  - name: Tickets
+    table: fact_ticket
+    dax: COUNTROWS(fact_ticket)
+    sql: COUNT(*)
+    format: "#,0"
+    description: Support tickets opened.
+    synonyms: [tickets, complaints, support tickets, cases]
+
+dimensions:
+  - {name: region, column: dim_store.region, synonyms: [region, regions]}
+  - {name: store, column: dim_store.store_name, synonyms: [store, stores, branch, branches, shop]}
+  - {name: city, column: dim_store.city, synonyms: [city, cities, town, towns]}
+  - {name: category, column: dim_product.category, synonyms: [category, categories, department, departments]}
+  - {name: brand, column: dim_product.brand, synonyms: [brand, brands]}
+  - {name: product, column: dim_product.product_name, synonyms: [product, products, item, items]}
+  - {name: day_of_week, column: dim_date.day_of_week, synonyms: [day of week, weekday, weekdays]}
+  - {name: week, column: dim_date.iso_week, synonyms: [week, weeks, weekly]}
+  - {name: month, column: dim_date.month, synonyms: [month, months, monthly]}
+  - {name: tier, column: dim_customer.tier, synonyms: [tier, tiers, loyalty tier]}
+  - {name: ticket_category, column: fact_ticket.category, synonyms: [ticket category, complaint type, issue type]}
+  - {name: device, column: fact_freezer_daily.device_id, synonyms: [freezer, freezers, device, devices]}

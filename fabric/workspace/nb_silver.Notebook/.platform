@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_silver",
+    "description": "Type, de-duplicate, validate and redact into silver."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "77841083-8886-5f22-afd9-c64c3583bbba"
+  }
+}

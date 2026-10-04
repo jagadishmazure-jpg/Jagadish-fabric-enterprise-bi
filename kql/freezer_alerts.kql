@@ -1,0 +1,17 @@
+// Freezer running warm: the 5-minute average is above the threshold for N windows in a row.
+// Python twin: fabricbi.hotpath.windows (WARM_THRESHOLD_C, WARM_WINDOWS).
+let window_size = 5m;
+let warm_threshold_c = -12.0;
+let warm_windows = 3;
+freezer_readings
+| where event_time > ago(6h)
+| summarize avg_temp_c = avg(temp_c), max_temp_c = max(temp_c), readings = count()
+    by device_id, window_start = bin(event_time, window_size)
+| order by device_id asc, window_start asc
+| extend warm = avg_temp_c > warm_threshold_c
+| extend run_id = row_cumsum(iff(warm and prev(warm) and device_id == prev(device_id), 0, 1))
+| where warm
+| summarize first_window = min(window_start), windows = count(), peak_c = max(max_temp_c) by device_id, run_id
+| where windows >= warm_windows
+| project window_start = first_window, kind = "freezer_warm", key = device_id, severity = "critical",
+    detail = strcat("avg above ", tostring(warm_threshold_c), " C for ", tostring(windows), " windows, peak ", tostring(peak_c), " C")

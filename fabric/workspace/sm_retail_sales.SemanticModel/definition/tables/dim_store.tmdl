@@ -1,0 +1,34 @@
+/// Stores. Region is the row-level security key.
+table dim_store
+
+	column store_key
+		dataType: int64
+		isHidden
+		sourceColumn: store_key
+
+	column store_id
+		dataType: string
+		sourceColumn: store_id
+
+	column store_name
+		dataType: string
+		sourceColumn: store_name
+
+	column city
+		dataType: string
+		sourceColumn: city
+
+	column region
+		dataType: string
+		sourceColumn: region
+
+	column square_meters
+		dataType: int64
+		sourceColumn: square_meters
+
+	partition dim_store = entity
+		mode: directLake
+		source
+			entityName: dim_store
+			schemaName: gold
+			expressionSource: DatabaseQuery

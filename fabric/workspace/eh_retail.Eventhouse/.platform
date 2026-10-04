@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Eventhouse",
+    "displayName": "eh_retail",
+    "description": "Eventhouse for the hot path."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6c80b722-5cc4-5dde-8c1e-9b1fa521ae8b"
+  }
+}

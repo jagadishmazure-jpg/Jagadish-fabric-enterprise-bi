@@ -1,0 +1,10 @@
+table: gold.forecast_sales
+description: Seven-day-ahead forecast for the hold-out window, next to actuals and the naive baseline.
+primary_key: [store_key, category, date]
+columns:
+  - {name: store_key, type: int, nullable: false}
+  - {name: category, type: string, nullable: false}
+  - {name: date, type: timestamp, nullable: false}
+  - {name: net_sales, type: float, nullable: false, min: 0}
+  - {name: lag7, type: float, nullable: false, min: 0}
+  - {name: forecast, type: float, nullable: false, min: 0}

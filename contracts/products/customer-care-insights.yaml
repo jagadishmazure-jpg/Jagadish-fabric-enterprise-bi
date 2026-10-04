@@ -1,0 +1,15 @@
+name: customer-care-insights
+version: 1.0.0
+domain: customer
+owner: customer-care
+description: Support tickets classified by topic with a confidence score and a human-review flag. Ticket text never leaves silver, and only redacted.
+output_ports: [gold.fact_ticket]
+schema_contracts: [gold.fact_ticket]
+sensitivity: General
+slo:
+  freshness_hours: 48
+  max_quarantine_rate: 0.05
+consumers: [powerbi.care-dashboard, agent.fabric-data-agent]
+sharing:
+  internal_shortcut: true
+  external_share: false

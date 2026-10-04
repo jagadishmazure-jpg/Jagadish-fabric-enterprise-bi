@@ -1,0 +1,11 @@
+table: gold.fact_ticket
+description: Support tickets with the enriched category from the classifier. Text is redacted.
+primary_key: [ticket_id]
+columns:
+  - {name: ticket_id, type: string, nullable: false, unique: true}
+  - {name: date_key, type: int, nullable: false}
+  - {name: store_key, type: int, nullable: false}
+  - {name: channel, type: string, nullable: false, accepted_values: [app, email, phone]}
+  - {name: category, type: string, nullable: false, accepted_values: [billing, product_quality, delivery, store_experience, loyalty, needs_review]}
+  - {name: confidence, type: float, nullable: false, min: 0, max: 1}
+  - {name: needs_review, type: bool, nullable: false}

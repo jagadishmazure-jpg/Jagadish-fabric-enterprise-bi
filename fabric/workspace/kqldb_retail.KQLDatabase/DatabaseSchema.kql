@@ -1,0 +1,32 @@
+// Generated from kql/tables.kql by scripts/export_contracts.py. Do not edit.
+// Eventhouse (KQL database) tables for the hot path, fed by a Fabric Eventstream.
+// pos_events comes from Event Hubs, freezer_readings from IoT Hub. ingestion_time() is kept so
+// late arrivals can be measured (see late_events.kql).
+
+.create-merge table pos_events (
+    event_time: datetime,
+    store_id: string,
+    txn_id: string,
+    basket_value: real,
+    items: int)
+
+.create-merge table freezer_readings (
+    event_time: datetime,
+    device_id: string,
+    store_id: string,
+    temp_c: real)
+
+.create-merge table hot_alerts (
+    window_start: datetime,
+    kind: string,
+    key: string,
+    severity: string,
+    detail: string)
+
+// Raw events are kept for a short time only; the cold path holds history in the Lakehouse.
+.alter-merge table pos_events policy retention softdelete = 7d
+.alter-merge table freezer_readings policy retention softdelete = 7d
+
+// JSON ingestion mapping used by the Eventstream destination.
+.create-or-alter table freezer_readings ingestion json mapping "freezer_json"
+    '[{"column":"event_time","path":"$.ts"},{"column":"device_id","path":"$.deviceId"},{"column":"store_id","path":"$.storeId"},{"column":"temp_c","path":"$.tempC"}]'

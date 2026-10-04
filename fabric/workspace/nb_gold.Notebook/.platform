@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_gold",
+    "description": "Build the gold star schema and daily aggregate."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "78e137fe-4897-54a3-88db-0facdc41a41a"
+  }
+}

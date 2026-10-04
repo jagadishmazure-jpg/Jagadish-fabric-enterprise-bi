@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "prod" },
+    "fabricSku": { "value": "F4" },
+    "eventHubsSku": { "value": "Standard" },
+    "iotHubSku": { "value": "S1" },
+    "storageSku": { "value": "Standard_ZRS" },
+    "deployPurview": { "value": true },
+    "logDailyQuotaGb": { "value": -1 },
+    "purgeProtection": { "value": true }
+  }
+}

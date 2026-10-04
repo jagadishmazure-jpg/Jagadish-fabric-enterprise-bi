@@ -1,0 +1,43 @@
+/// Daily temperature summary per freezer.
+table fact_freezer_daily
+
+	/// Mean of daily average freezer temperatures in degrees Celsius.
+	measure 'Average Freezer Temp' = AVERAGE(fact_freezer_daily[avg_temp_c])
+		formatString: 0.0
+
+	/// Hours a freezer spent above the warm threshold.
+	measure 'Warm Hours' = SUM(fact_freezer_daily[hours_above_threshold])
+		formatString: #,0
+
+	column date_key
+		dataType: int64
+		isHidden
+		sourceColumn: date_key
+
+	column store_key
+		dataType: int64
+		isHidden
+		sourceColumn: store_key
+
+	column device_id
+		dataType: string
+		sourceColumn: device_id
+
+	column avg_temp_c
+		dataType: double
+		sourceColumn: avg_temp_c
+
+	column max_temp_c
+		dataType: double
+		sourceColumn: max_temp_c
+
+	column hours_above_threshold
+		dataType: int64
+		sourceColumn: hours_above_threshold
+
+	partition fact_freezer_daily = entity
+		mode: directLake
+		source
+			entityName: fact_freezer_daily
+			schemaName: gold
+			expressionSource: DatabaseQuery

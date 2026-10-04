@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Lakehouse",
+    "displayName": "lh_retail",
+    "description": "Medallion Lakehouse: bronze, silver and gold tables."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "734b1c2a-d1bd-5ba8-b362-5342c5e0e3ee"
+  }
+}

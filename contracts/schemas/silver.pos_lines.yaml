@@ -1,0 +1,13 @@
+table: silver.pos_lines
+description: Point-of-sale lines after typing, de-duplication and quality rules.
+primary_key: [txn_id, line_no]
+columns:
+  - {name: txn_id, type: string, nullable: false}
+  - {name: line_no, type: int, nullable: false, min: 1}
+  - {name: store_id, type: string, nullable: false}
+  - {name: ts, type: timestamp, nullable: false}
+  - {name: customer_id, type: string, nullable: true}
+  - {name: sku, type: string, nullable: false}
+  - {name: qty, type: int, nullable: false, min: 1, max: 50}
+  - {name: unit_price, type: float, nullable: false, min: 0.01}
+  - {name: discount_pct, type: float, nullable: false, min: 0, max: 0.9}

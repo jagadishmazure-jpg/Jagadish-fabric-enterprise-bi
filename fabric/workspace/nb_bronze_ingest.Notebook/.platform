@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_bronze_ingest",
+    "description": "Land source files into bronze with ingest metadata."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d2a8ed4d-64d3-5235-8017-758428eb2652"
+  }
+}

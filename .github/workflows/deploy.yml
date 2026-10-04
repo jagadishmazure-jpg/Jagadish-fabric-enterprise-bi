@@ -1,0 +1,155 @@
+# Deploy the data platform: dev -> (approval) -> prod, with either Bicep or Terraform.
+#
+# GATED OFF: every job except `preflight` runs only when the repository variable
+# DEPLOY_ENABLED == 'true'. It is not set, so on push to main this workflow reports the gate and
+# skips the deploy jobs. See docs/deployment.md for the one-time setup (OIDC federated
+# credentials, GitHub Environments `dev` and `prod` with required reviewers, state storage, the
+# Fabric tenant setting that lets service principals call Fabric APIs).
+#
+# Two layers, two mechanisms:
+#   1. Azure resources (Fabric capacity, Event Hubs, IoT Hub, storage, Key Vault, Log Analytics,
+#      Purview) through Terraform or Bicep.
+#   2. Fabric workspace items (Lakehouse, Eventhouse, KQL database, notebooks, semantic model) are
+#      not ARM resources: the workspace is created with the Fabric REST API and the items in
+#      fabric/workspace/ are published with fabric-cicd.
+# Azure login is OIDC only; no client secret exists.
+name: deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_tool:
+        description: "IaC tool"
+        type: choice
+        options: [terraform, bicep]
+        default: terraform
+      promote_to_prod:
+        description: "Continue to prod after dev (prod still waits for reviewer approval)"
+        type: boolean
+        default: true
+      pause_dev_capacity:
+        description: "Pause the dev Fabric capacity after smoke tests"
+        type: boolean
+        default: true
+      location:
+        description: "Azure region"
+        type: string
+        default: eastus2
+permissions:
+  contents: read
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  DEPLOY_TOOL: ${{ inputs.deploy_tool || vars.DEPLOY_TOOL || 'terraform' }}
+  LOCATION: ${{ inputs.location || vars.AZURE_LOCATION || 'eastus2' }}
+  TF_VERSION: "1.16.4"
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report deploy gate
+        env:
+          ENABLED: ${{ vars.DEPLOY_ENABLED == 'true' }}
+        run: |
+          {
+            echo "### Deploy gate"
+            echo "- DEPLOY_ENABLED: \`${ENABLED}\` (deploy jobs run only when this is true)"
+            echo "- deploy tool: \`${DEPLOY_TOOL}\`, region: \`${LOCATION}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [[ "$ENABLED" == "true" ]] || echo "::notice::Deployment disabled (repository variable DEPLOY_ENABLED is not 'true'); deploy jobs are skipped."
+
+  deploy-dev:
+    needs: [preflight]
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TARGET_ENV: dev
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TFSTATE_RESOURCE_GROUP: ${{ vars.TFSTATE_RESOURCE_GROUP }}
+      TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+      FABRIC_ADMINS: ${{ vars.FABRIC_ADMINS }}
+      FABRIC_CAPACITY_ID: ${{ vars.FABRIC_CAPACITY_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "${{ env.TF_VERSION }}", terraform_wrapper: false }
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Provision Azure resources (${{ env.DEPLOY_TOOL }})
+        id: provision
+        run: .github/scripts/deploy.sh provision
+      - name: Fabric workspace and items (Fabric REST API + fabric-cicd)
+        id: fabric
+        env:
+          CAPACITY_NAME: ${{ steps.provision.outputs.capacity_name }}
+        run: .github/scripts/deploy.sh fabric
+      - name: Smoke tests
+        env:
+          RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group }}
+          CAPACITY_NAME: ${{ steps.provision.outputs.capacity_name }}
+          WORKSPACE_ID: ${{ steps.fabric.outputs.workspace_id }}
+        run: .github/scripts/deploy.sh smoke
+      - name: Pause the dev capacity (stops compute billing)
+        if: always() && steps.provision.outputs.capacity_name != '' && inputs.pause_dev_capacity != false
+        env:
+          RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group }}
+          CAPACITY_NAME: ${{ steps.provision.outputs.capacity_name }}
+        run: .github/scripts/deploy.sh suspend
+
+  deploy-prod:
+    needs: [preflight, deploy-dev]
+    if: vars.DEPLOY_ENABLED == 'true' && (github.event_name == 'push' || inputs.promote_to_prod)
+    runs-on: ubuntu-latest
+    environment: prod # required reviewers are configured on this environment
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TARGET_ENV: prod
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TFSTATE_RESOURCE_GROUP: ${{ vars.TFSTATE_RESOURCE_GROUP }}
+      TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+      FABRIC_ADMINS: ${{ vars.FABRIC_ADMINS }}
+      FABRIC_CAPACITY_ID: ${{ vars.FABRIC_CAPACITY_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "${{ env.TF_VERSION }}", terraform_wrapper: false }
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Provision Azure resources (${{ env.DEPLOY_TOOL }})
+        id: provision
+        run: .github/scripts/deploy.sh provision
+      - name: Fabric workspace and items (Fabric REST API + fabric-cicd)
+        id: fabric
+        env:
+          CAPACITY_NAME: ${{ steps.provision.outputs.capacity_name }}
+        run: .github/scripts/deploy.sh fabric
+      - name: Smoke tests
+        env:
+          RESOURCE_GROUP: ${{ steps.provision.outputs.resource_group }}
+          CAPACITY_NAME: ${{ steps.provision.outputs.capacity_name }}
+          WORKSPACE_ID: ${{ steps.fabric.outputs.workspace_id }}
+        run: .github/scripts/deploy.sh smoke

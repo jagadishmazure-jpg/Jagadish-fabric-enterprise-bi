@@ -1,0 +1,107 @@
+{
+  "server": "fabric-data-agent",
+  "tools": [
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Answer a business question about Fernhill Grocers sales, freezers or support tickets from the governed gold model. Returns rows, the SQL that ran and a summary. Results respect the caller's region and role.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "maxLength": 400,
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "type": "object"
+      },
+      "name": "ask_data_agent"
+    },
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Run one read-only SELECT against the gold views (fact_sales, dim_store, dim_product, dim_customer, dim_date, agg_daily_sales, fact_freezer_daily, fact_ticket). Refused if it writes, reads files, touches restricted columns or exceeds the cost limit.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "sql": {
+            "maxLength": 4000,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sql"
+        ],
+        "type": "object"
+      },
+      "name": "run_readonly_sql"
+    },
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Search the data platform documentation, data product contracts and measure definitions. Use for questions about definitions, ownership, freshness and how the platform works.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "k": {
+            "default": 3,
+            "maximum": 8,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 400,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "search_docs"
+    },
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "Catalog entry for a table or other asset, e.g. gold.fact_sales: owner, sensitivity label, classified columns, upstream and downstream lineage.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "asset": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset"
+        ],
+        "type": "object"
+      },
+      "name": "describe_asset"
+    },
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": "List data products with owner, output tables, sensitivity and freshness service level.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_data_products"
+    }
+  ]
+}

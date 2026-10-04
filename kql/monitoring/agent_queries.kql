@@ -1,0 +1,7 @@
+// Log Analytics: data agent outcomes (answered, refused by a guardrail, cost-limited, errored).
+AppMetrics
+| where TimeGenerated > ago(7d)
+| where Name == "fabricbi.agent.queries"
+| extend outcome = tostring(Properties["outcome"])
+| summarize queries = sum(Sum) by outcome, bin(TimeGenerated, 1d)
+| render columnchart

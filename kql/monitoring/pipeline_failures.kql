@@ -1,0 +1,8 @@
+// Log Analytics: failed pipeline steps and data quality gate failures in the last day, for an
+// Azure Monitor scheduled query alert. Reads the OpenTelemetry spans exported to App Insights.
+AppDependencies
+| where TimeGenerated > ago(1d)
+| where AppRoleName == "fabric-enterprise-bi"
+| where Success == false or tostring(Properties["fabricbi.dq_gate"]) == "failed"
+| summarize failures = count(), last_failure = max(TimeGenerated) by step = Name
+| order by failures desc

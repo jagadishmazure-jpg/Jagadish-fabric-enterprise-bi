@@ -1,0 +1,11 @@
+// A sensor that has gone quiet: no reading for longer than the offline limit.
+// Python twin: fabricbi.hotpath.windows (OFFLINE_AFTER).
+let offline_after = 15m;
+freezer_readings
+| where event_time > ago(6h)
+| order by device_id asc, event_time asc
+| extend last_seen = prev(event_time), prev_device = prev(device_id)
+| extend gap = event_time - last_seen
+| where device_id == prev_device and gap > offline_after
+| project window_start = bin(last_seen, 5m), kind = "sensor_offline", key = device_id, severity = "warning",
+    detail = strcat("silent for ", tostring(gap))

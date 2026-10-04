@@ -1,0 +1,28 @@
+# checkov config for the Terraform stack (used by .github/workflows/infra.yml).
+# Every skip below is a deliberate trade-off for the smallest-SKU dev profile, with the prod answer
+# noted. Anything not listed fails the pull request.
+framework:
+  - terraform
+compact: true
+quiet: true
+skip-check:
+  # --- public endpoints: dev keeps public endpoints with Entra-ID-only auth (shared keys, SAS and
+  #     local auth off). Private endpoints and public access off are the prod path (planned, see
+  #     docs/best-practices.md). Fabric reaches these services through trusted-workspace access or
+  #     a managed private endpoint once networking is locked down.
+  - CKV_AZURE_59
+  - CKV_AZURE_108
+  - CKV_AZURE_109
+  - CKV_AZURE_189
+  - CKV2_AZURE_32
+  - CKV2_AZURE_33
+  # --- Key Vault purge protection is a variable: off in dev so teardown is clean, on in prod.tfvars.
+  - CKV_AZURE_42
+  - CKV_AZURE_110
+  # --- storage replication is a variable: LRS in dev, ZRS in prod.tfvars.
+  - CKV_AZURE_206
+  # --- customer-managed keys and classic storage analytics logging: not used on the landing zone;
+  #     resource logs go to Log Analytics through diagnostic settings in the prod hardening path.
+  - CKV2_AZURE_1
+  - CKV_AZURE_33
+  - CKV2_AZURE_21

@@ -1,0 +1,110 @@
+{
+  "capabilities": {
+    "extensions": [
+      {
+        "description": "Control-plane registration: owner, policy, side effects, eval gate",
+        "params": {
+          "agent_id": "fabric-data-agent",
+          "allowed_callers": [
+            "experience-bff",
+            "underwriting-agent",
+            "care-planner",
+            "data-agent"
+          ],
+          "eval_score": 1.0,
+          "model_deployment": "",
+          "owner": "data-platform",
+          "prompt_refs": [],
+          "requires_headers": [
+            "traceparent",
+            "x-tenant-id",
+            "x-caller-agent",
+            "x-user-subject"
+          ],
+          "side_effect_class": "read",
+          "skill_side_effects": {
+            "ask_sales_question": "read",
+            "describe_data_asset": "read",
+            "search_data_docs": "read"
+          },
+          "stage": "dev",
+          "standin": false,
+          "system_of_record": "Microsoft Fabric OneLake (local stand-in)",
+          "tenants": [
+            "fernhill"
+          ],
+          "vendor_style": ""
+        },
+        "uri": "urn:agentplatform:control-plane:v1"
+      }
+    ],
+    "streaming": false
+  },
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "description": "Governed natural-language analytics over the Fernhill Grocers gold model (sales, freezers, tickets), with row-level security, PII masking and read-only SQL.",
+  "name": "Fabric Data Agent",
+  "provider": {
+    "organization": "Fernhill Grocers (fictional demo)",
+    "url": "https://github.com/jagadishmazure-jpg"
+  },
+  "skills": [
+    {
+      "description": "Plain-language question over the governed gold model; respects the end user's region and role. [side-effect: read]",
+      "id": "ask_sales_question",
+      "inputModes": [
+        "application/json"
+      ],
+      "name": "Ask a sales or operations question",
+      "outputModes": [
+        "application/json"
+      ],
+      "tags": [
+        "analytics",
+        "fabric"
+      ]
+    },
+    {
+      "description": "Retrieval over docs, data product contracts and measure definitions (for RAG grounding). [side-effect: read]",
+      "id": "search_data_docs",
+      "inputModes": [
+        "application/json"
+      ],
+      "name": "Search data documentation",
+      "outputModes": [
+        "application/json"
+      ],
+      "tags": [
+        "analytics",
+        "fabric"
+      ]
+    },
+    {
+      "description": "Owner, sensitivity label, classified columns and lineage for a table. [side-effect: read]",
+      "id": "describe_data_asset",
+      "inputModes": [
+        "application/json"
+      ],
+      "name": "Describe a data asset",
+      "outputModes": [
+        "application/json"
+      ],
+      "tags": [
+        "analytics",
+        "fabric"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0",
+      "url": "http://fabric-data-agent.local/a2a"
+    }
+  ],
+  "version": "0.1.0"
+}

@@ -1,0 +1,14 @@
+// Log Analytics: data freshness per data product, from the pipeline's custom table.
+// The pipeline writes one row per successful publish to FabricBiPublish_CL (planned; offline the
+// same check runs in fabricbi.observability.slo).
+let slo_hours = datatable(product: string, max_age_h: real) [
+    "retail-sales", 26.0,
+    "store-operations-live", 0.25,
+    "customer-care-insights", 48.0
+];
+FabricBiPublish_CL
+| summarize last_publish = max(TimeGenerated) by product = Product_s
+| join kind=rightouter slo_hours on product
+| extend age_h = datetime_diff('minute', now(), last_publish) / 60.0
+| extend status = case(isnull(last_publish), "breach", age_h > max_age_h, "breach", age_h > 0.8 * max_age_h, "warning", "ok")
+| project product = coalesce(product, product1), age_h, max_age_h, status

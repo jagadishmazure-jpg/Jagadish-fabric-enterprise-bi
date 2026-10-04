@@ -1,0 +1,10 @@
+table: gold.fact_freezer_daily
+description: Daily temperature summary per freezer.
+primary_key: [date_key, device_id]
+columns:
+  - {name: date_key, type: int, nullable: false}
+  - {name: store_key, type: int, nullable: false}
+  - {name: device_id, type: string, nullable: false}
+  - {name: avg_temp_c, type: float, nullable: false, min: -40, max: 15}
+  - {name: max_temp_c, type: float, nullable: false, min: -40, max: 15}
+  - {name: hours_above_threshold, type: int, nullable: false, min: 0, max: 24}

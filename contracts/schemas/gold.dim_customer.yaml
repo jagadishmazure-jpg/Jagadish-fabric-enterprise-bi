@@ -1,0 +1,11 @@
+table: gold.dim_customer
+description: Loyalty members from the mirrored operational database. email and phone are personal data.
+primary_key: [customer_key]
+columns:
+  - {name: customer_key, type: int, nullable: false, unique: true}
+  - {name: customer_id, type: string, nullable: false, unique: true}
+  - {name: first_name, type: string, nullable: false}
+  - {name: email, type: string}
+  - {name: phone, type: string}
+  - {name: tier, type: string, nullable: false, accepted_values: [none, bronze, silver, gold]}
+  - {name: home_region, type: string, nullable: false}

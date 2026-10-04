@@ -1,0 +1,16 @@
+# fabric-cicd parameter file: values replaced per environment when items are published.
+# Logical ids in .platform files are stable; workspace and item ids differ per environment and
+# are resolved by fabric-cicd at publish time.
+find_replace:
+  - find_value: "lh_retail"
+    replace_value:
+      dev: "lh_retail"
+      prod: "lh_retail"
+    item_type: "Notebook"
+key_value_replace:
+  - find_key: $.oneLakeCachingPeriod
+    replace_value:
+      dev: "P7D"
+      prod: "P30D"
+    item_type: "KQLDatabase"
+    file_path: "**/DatabaseProperties.json"

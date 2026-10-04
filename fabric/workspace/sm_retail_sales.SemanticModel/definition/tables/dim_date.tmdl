@@ -1,0 +1,34 @@
+/// Calendar.
+table dim_date
+
+	column date_key
+		dataType: int64
+		isHidden
+		sourceColumn: date_key
+
+	column date
+		dataType: dateTime
+		sourceColumn: date
+
+	column day_of_week
+		dataType: string
+		sourceColumn: day_of_week
+
+	column iso_week
+		dataType: int64
+		sourceColumn: iso_week
+
+	column month
+		dataType: int64
+		sourceColumn: month
+
+	column is_weekend
+		dataType: boolean
+		sourceColumn: is_weekend
+
+	partition dim_date = entity
+		mode: directLake
+		source
+			entityName: dim_date
+			schemaName: gold
+			expressionSource: DatabaseQuery

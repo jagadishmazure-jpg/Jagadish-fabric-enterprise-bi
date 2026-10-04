@@ -1,0 +1,15 @@
+name: demand-forecast
+version: 0.3.0
+domain: commercial
+owner: commercial-analytics
+description: Seven-day-ahead net sales forecast per store and category, shared read-only with a supplier planning partner through an external share.
+output_ports: [gold.forecast_sales]
+schema_contracts: [gold.forecast_sales]
+sensitivity: General
+slo:
+  freshness_hours: 26
+  max_quarantine_rate: 0.0
+consumers: [external.supplier-planning, powerbi.retail-sales-report]
+sharing:
+  internal_shortcut: true
+  external_share: true

@@ -1,0 +1,15 @@
+name: store-operations-live
+version: 1.0.0
+domain: operations
+owner: store-operations
+description: Live 5-minute sales and freezer summaries, plus alerts for warm freezers, silent sensors and sales spikes. Served from the Eventhouse.
+output_ports: [eventhouse.sales_windows, eventhouse.sensor_windows, eventhouse.hot_alerts]
+schema_contracts: []
+sensitivity: General
+slo:
+  freshness_hours: 0.25
+  max_quarantine_rate: 0.01
+consumers: [powerbi.store-ops-realtime, activator.freezer-alerts]
+sharing:
+  internal_shortcut: true
+  external_share: false

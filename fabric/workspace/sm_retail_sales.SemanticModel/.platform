@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "sm_retail_sales",
+    "description": "Direct Lake semantic model over the gold tables."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2f3eb8f3-d6e8-515c-89bf-a71b7a32b026"
+  }
+}

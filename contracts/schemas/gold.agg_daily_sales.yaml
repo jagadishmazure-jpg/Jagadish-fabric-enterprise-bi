@@ -1,0 +1,10 @@
+table: gold.agg_daily_sales
+description: Net sales, units and transactions per day, store and category. Feeds forecasting and the batch side of the Lambda view.
+primary_key: [date_key, store_key, category]
+columns:
+  - {name: date_key, type: int, nullable: false}
+  - {name: store_key, type: int, nullable: false}
+  - {name: category, type: string, nullable: false}
+  - {name: net_sales, type: float, nullable: false, min: 0}
+  - {name: units, type: int, nullable: false, min: 0}
+  - {name: transactions, type: int, nullable: false, min: 0}

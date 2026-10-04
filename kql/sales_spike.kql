@@ -1,0 +1,22 @@
+// Sales spike: a store's 5-minute revenue is far above its own trailing baseline.
+// Python twin: fabricbi.hotpath.windows (SPIKE_Z, BASELINE_WINDOWS, MIN_SPIKE_REVENUE).
+// The baseline is the mean and population standard deviation of the previous 12 windows.
+let window_size = 5m;
+let spike_z = 3.0;
+let baseline_windows = 12;
+let min_spike_revenue = 300.0;
+pos_events
+| where event_time > ago(6h)
+| make-series revenue = sum(basket_value) default = 0.0 on event_time step window_size by store_id
+| extend sq = series_multiply(revenue, revenue)
+| extend mean_incl = series_fir(revenue, repeat(1, baseline_windows), true, false),
+         sq_incl = series_fir(sq, repeat(1, baseline_windows), true, false)
+| mv-expand window_start = event_time to typeof(datetime), revenue to typeof(real),
+            mean_incl to typeof(real), sq_incl to typeof(real)
+| order by store_id asc, window_start asc
+| extend n = row_number(1, store_id != prev(store_id)), mu = prev(mean_incl), sq_mu = prev(sq_incl)
+| extend sd = sqrt(max_of(sq_mu - mu * mu, 0.0))
+| extend z = iff(sd > 0, (revenue - mu) / sd, 0.0)
+| where n > baseline_windows and z >= spike_z and revenue >= min_spike_revenue
+| project window_start, kind = "sales_spike", key = store_id, severity = "info",
+    detail = strcat("revenue ", tostring(round(revenue)), " vs baseline ", tostring(round(mu)), " (z=", tostring(round(z, 1)), ")")

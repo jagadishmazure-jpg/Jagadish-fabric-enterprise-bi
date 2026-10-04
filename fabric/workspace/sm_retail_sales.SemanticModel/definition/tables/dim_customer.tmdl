@@ -1,0 +1,38 @@
+/// Loyalty members. email and phone are personal data and are masked unless the caller may read PII.
+table dim_customer
+
+	column customer_key
+		dataType: int64
+		isHidden
+		sourceColumn: customer_key
+
+	column customer_id
+		dataType: string
+		sourceColumn: customer_id
+
+	column first_name
+		dataType: string
+		sourceColumn: first_name
+
+	column email
+		dataType: string
+		sourceColumn: email
+
+	column phone
+		dataType: string
+		sourceColumn: phone
+
+	column tier
+		dataType: string
+		sourceColumn: tier
+
+	column home_region
+		dataType: string
+		sourceColumn: home_region
+
+	partition dim_customer = entity
+		mode: directLake
+		source
+			entityName: dim_customer
+			schemaName: gold
+			expressionSource: DatabaseQuery
