@@ -10,6 +10,7 @@ observability, failure modes, the mapping to the real Fabric or Azure service, a
 
 | File | What it does |
 |---|---|
+| [`security/`](security/README.md) | Threat model: STRIDE, OWASP Top 10 for LLM Applications and MITRE ATLAS mapped to this repo's components, with controls, tests and built / planned status |
 | [`README.md`](README.md) | This index |
 | [`architecture.md`](architecture.md) | End-to-end design: sources, ingest, OneLake, processing, enrichment, serving, governance |
 | [`implementation-guide.md`](implementation-guide.md) | Clean clone to full local demo, then every step to a real Fabric and Azure deployment, each with a verification |
