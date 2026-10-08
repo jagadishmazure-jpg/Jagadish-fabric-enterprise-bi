@@ -43,12 +43,12 @@ pip install -e ".[dev]"
 ### Step 3: Run the tests
 
 ```bash
-pytest -q  # 199 tests
+pytest -q  # 200 tests
 ```
 
 The tests build the whole lake from synthetic data in a temporary folder, so they need no setup.
 
-**Verify:** the last line reads `199 passed`. (The count is checked against the code by
+**Verify:** the last line reads `200 passed`. (The count is checked against the code by
 `scripts/doc_outputs.py --check`, so it cannot drift from what pytest collects.)
 
 ### Step 4: Run the end-to-end demo

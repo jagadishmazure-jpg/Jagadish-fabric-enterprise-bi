@@ -6,6 +6,8 @@ Notable changes, newest first. The format follows [Keep a Changelog](https://kee
 
 ### Added
 
+- Supply-chain hardening: every GitHub Action pinned to a commit SHA with a version comment, top-level `permissions` on every workflow, a gitleaks job in CI, a CodeQL workflow, `.github/dependabot.yml` and a guard test (`test_workflows_are_hardened`).
+- GitHub settings: Dependabot alerts and security updates, private vulnerability reporting and a `main` ruleset (no force-push or deletion; CI required on pull requests).
 - Synthetic data domain for the fictional Fernhill Grocers chain, with planted defects and incidents.
 - Cold path: idempotent bronze ingest, mirroring with CDC, silver contracts and quarantine, gold star schema.
 - Hot path: simulated Event Hubs and IoT Hub stream, event-time windows with lateness, three alert rules, KQL twins.

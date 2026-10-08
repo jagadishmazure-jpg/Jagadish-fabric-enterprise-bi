@@ -46,6 +46,11 @@ change is a reviewable diff, and the same definitions go to dev and prod with va
 | `lint` | `ruff check`, `ruff format --check`, `export_contracts.py --check` (agent card, MCP tools, TMDL, KQL schema), `cost_report.py --check`, `model_card.py --check`, `doc_outputs.py --check`, `secrets_scan.py` |
 | `test` | `pytest -q`, `scripts/demo.py`, `run_evals.py --out evals-out` (fails on any gate or regression), uploads the eval report |
 | `bicep` | installs the Bicep CLI and runs `bicep build infra/main.bicep` (compile only) |
+| `secrets` | gitleaks over the full git history (known false positives listed by fingerprint in `.gitleaksignore`) |
+
+### `codeql.yml` (every pull request, push to `main` and weekly)
+
+CodeQL for the Python code and for the workflow files. Findings go to Security -> Code scanning and do not fail the build.
 
 ### `infra.yml` (every pull request and push to `main`, or manual)
 
@@ -152,6 +157,9 @@ if any workflow mentions a client secret, or if teardown stops requiring confirm
 - OIDC only: short-lived tokens, a federated credential per GitHub Environment, no client
   secret anywhere (enforced by the test above and by `secrets_scan.py`).
 - `permissions: contents: read` by default; `id-token: write` only on deploy jobs.
+- Every third-party action is pinned to a full commit SHA with a version comment; Dependabot
+  (`.github/dependabot.yml`) proposes weekly grouped updates, and
+  `tests/test_10_repo.py::test_workflows_are_hardened` fails CI if an action is left unpinned.
 - Prod requires reviewers through the GitHub Environment, and deployments are serialised by a
   `concurrency` group that does not cancel a running deploy.
 - Smoke tests fail the deploy if Event Hubs allows SAS keys or storage allows shared keys.

@@ -16,12 +16,12 @@ temporary folder (about five seconds), and every test reads from that run.
 | [`test_07_semantic_agent.py`](test_07_semantic_agent.py) | Semantic model, every golden question and guardrail case, RLS, OLS, masking, sandbox |
 | [`test_08_mcp_a2a.py`](test_08_mcp_a2a.py) | MCP over `handle()` and stdio; A2A card, caller and tenant checks, HTTP |
 | [`test_09_governance_ops.py`](test_09_governance_ops.py) | Catalog, lineage, labels, data products, vector store, SLOs, telemetry, capacity sizing |
-| [`test_10_repo.py`](test_10_repo.py) | Generated files current, Fabric items, eval gates, folder READMEs, no dates, links, workflow gates |
+| [`test_10_repo.py`](test_10_repo.py) | Generated files current, Fabric items, eval gates, folder READMEs, no dates, links, workflow gates, workflow supply-chain guard (pinned actions, permissions, gitleaks, CodeQL, Dependabot) |
 | [`test_11_docs.py`](test_11_docs.py) | Every component guide exists, is indexed and has the required sections; code excerpts are copied from the source; pasted outputs and test counts are current; no placeholders; the implementation guide verifies every step |
 
 Run:
 
 ```bash
-pytest -q  # 199 tests
+pytest -q  # 200 tests
 pytest -q tests/test_07_semantic_agent.py -k guardrail   # one area
 ```
