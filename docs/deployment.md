@@ -128,6 +128,8 @@ The smoke test refuses key-based access:
 | `FABRIC_CAPACITY_ID` | optional | publish into an existing or trial capacity |
 | `AZURE_LOCATION`, `DEPLOY_TOOL` | optional | defaults eastus2 and terraform |
 
+Private networking: `prod.tfvars` sets `private_networking = true` (Bicep: pass `privateNetworking=true`), which puts Key Vault and Purview behind private endpoints and turns their public access off. After such an apply, the vault and the Purview portal are reachable only from the VNet, so Purview scans, the Purview portal and anything reading the vault need a route in (peering, VPN or a self-hosted runner). This has never been applied; the option is plan-tested offline only.
+
 ## Run it locally
 
 The CI steps run on a laptop with `make check` (Python side), `make terraform` and `make bicep`.

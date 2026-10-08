@@ -42,6 +42,11 @@ run "dev_smallest_skus" {
     condition     = var.eventhubs_sku == "Basic" && var.iothub_sku == "F1" && var.storage_replication == "LRS"
     error_message = "dev must stay on the smallest SKUs"
   }
+
+  assert {
+    condition     = length(module.network) == 0 && length(module.private_endpoint) == 0 && local.kv_purview_public
+    error_message = "private networking is opt-in; dev keeps public endpoints for a cheap demo"
+  }
 }
 
 run "trial_capacity_instead_of_f_sku" {
@@ -86,5 +91,41 @@ run "prod_hardened" {
   assert {
     condition     = module.fabric[0].sku == "F4"
     error_message = "prod capacity follows the sizing estimate"
+  }
+}
+
+run "private_key_vault_and_purview" {
+  command = plan
+
+  variables {
+    environment            = "prod"
+    deploy_fabric_capacity = false
+    deploy_purview         = true
+    private_networking     = true
+  }
+
+  assert {
+    condition     = length(module.private_endpoint) == 3 && !local.kv_purview_public
+    error_message = "private networking adds endpoints for Key Vault, Purview account and Purview portal and turns their public access off"
+  }
+
+  assert {
+    condition     = startswith(module.network[0].nsg_name, "nsg-")
+    error_message = "the private-endpoint subnet sits behind an NSG"
+  }
+}
+
+run "private_key_vault_without_purview" {
+  command = plan
+
+  variables {
+    environment            = "dev"
+    deploy_fabric_capacity = false
+    private_networking     = true
+  }
+
+  assert {
+    condition     = length(module.private_endpoint) == 1
+    error_message = "without Purview only the Key Vault endpoint is created"
   }
 }

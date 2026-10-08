@@ -232,3 +232,32 @@ def test_workflows_are_hardened():
     assert "github/codeql-action/analyze@" in (wf_dir / "codeql.yml").read_text()
     deps = (ROOT / ".github" / "dependabot.yml").read_text()
     assert "package-ecosystem: github-actions" in deps and "interval: weekly" in deps
+
+
+def test_key_vault_and_purview_private_networking_in_both_tools():
+    infra = ROOT / "infra"
+    bicep = {p.name: p.read_text() for p in (infra / "modules").glob("*.bicep")}
+    main_b, main_t = (infra / "main.bicep").read_text(), (infra / "terraform/main.tf").read_text()
+    variables = (infra / "terraform/variables.tf").read_text()
+    # no longer hard-coded public; public stays the cheap default in both tools
+    for name in ("keyvault.bicep", "purview.bicep"):
+        assert "publicNetworkAccess: 'Enabled'" not in bicep[name], name
+        assert "publicNetworkAccess: publicNetworkAccess" in bicep[name], name
+    assert "param privateNetworking bool = false" in main_b
+    assert re.search(r'variable "private_networking" \{.*?default\s+= false', variables, re.S)
+    assert "kv_purview_public = var.public_network_access && !var.private_networking" in main_t
+    # the same three private endpoints (Key Vault, Purview account, Purview portal) and DNS zones
+    groups_b = set(re.findall(r"group: '(\w+)', zone: '(\w+)'", main_b))
+    groups_t = set(re.findall(r'group = "(\w+)", zone = "(\w+)"', main_t))
+    assert (
+        groups_b == groups_t == {("vault", "keyvault"), ("account", "purview"), ("portal", "purviewstudio")}
+    )
+    for zone in (
+        "privatelink.vaultcore.azure.net",
+        "privatelink.purview.azure.com",
+        "privatelink.purviewstudio.azure.com",
+    ):
+        assert zone in main_b and zone in main_t, zone
+    assert "networkSecurityGroup: { id: nsg.id }" in bicep["network.bicep"]
+    net_t = (infra / "terraform/modules/private-network/main.tf").read_text()
+    assert "azurerm_subnet_network_security_group_association" in net_t

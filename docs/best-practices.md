@@ -33,7 +33,7 @@ Nothing here has been deployed to Azure or Fabric.
 | **PII handling** | Ticket text is redacted in silver; customer email and phone are masked unless the caller is cleared; the loyalty data product is restricted. | Implemented | [`silver.py`](../src/fabricbi/coldpath/silver.py), [`access.py`](../src/fabricbi/serve/access.py) |
 | **Data products** | Five data products with owners, output ports, SLOs, consumers and semantic versions; a breaking schema change lists the consumers to notify. | Implemented | [`contracts/products`](../contracts/products/README.md), [`products.py`](../src/fabricbi/governance/products.py) |
 | **Identity, no keys** | OIDC in CI; a managed identity with data-plane roles at runtime; SAS and shared keys off; Key Vault in RBAC mode. | Written, not deployed | [ADR 0003](adr/0003-oidc-and-managed-identity.md), [`infra/terraform`](../infra/terraform/README.md) |
-| **Networking** | Public endpoints with Entra auth in both environments. No private endpoints or managed private endpoints yet. | Planned | [`infra/terraform/envs`](../infra/terraform/envs/README.md) |
+| **Networking** | Public endpoints with Entra auth by default. Optional private networking for Key Vault and Purview (VNet, NSG on the endpoint subnet, private DNS zones, private endpoints, public access off) in Terraform and Bicep, on in `prod.tfvars`; built and plan-tested, not deployed. Event Hubs, IoT Hub, storage and Fabric managed private endpoints are still public. | Partly built | [`infra/terraform/envs`](../infra/terraform/envs/README.md) |
 | **Secrets in the repo** | A secrets scan of the working tree and gitleaks over the full git history run in CI; GitHub secret scanning with push protection is on. | Implemented | [`scripts/secrets_scan.py`](../scripts/secrets_scan.py), [`ci.yml`](../.github/workflows/ci.yml), [`.gitleaksignore`](../.gitleaksignore) |
 | **Supply chain** | Every third-party action is pinned to a commit SHA with a version comment; every workflow has top-level read-only `permissions`; Dependabot opens weekly grouped updates for pip, Actions and Terraform; CodeQL scans Python and the workflows; Dependabot alerts and security updates are on; `main` has a ruleset that blocks force-push and deletion and requires CI on pull requests. No SBOM yet. | Implemented; SBOM planned | [`dependabot.yml`](../.github/dependabot.yml), [`codeql.yml`](../.github/workflows/codeql.yml), [`SECURITY.md`](../SECURITY.md) |
 
@@ -63,8 +63,9 @@ Nothing here has been deployed to Azure or Fabric.
 - Run on a real Fabric capacity: execute the notebooks, the KQL and the semantic model, and compare
   the results with the local reference.
 - Real data agent model: swap the mock for a Foundry deployment and grow the golden question set.
-- Private networking: managed private endpoints from Fabric to storage and Key Vault, private
-  endpoints for Event Hubs and Purview.
+- Private networking for the rest: managed private endpoints from Fabric to storage and Key Vault,
+  private endpoints for Event Hubs, IoT Hub and storage, and Purview ingestion endpoints (Key Vault
+  and the Purview account and portal already have an opt-in private option).
 - Fabric workspace roles and semantic model RLS roles generated from the access policy.
 - Alert rules on the monitoring KQL, a forecast drift monitor, and a DR plan.
 - Notebooks for the rest of the cold path (catalog flattening, the customer and date dimensions, the freezer tables and the guest member), so the Fabric items cover what the local pipeline does.

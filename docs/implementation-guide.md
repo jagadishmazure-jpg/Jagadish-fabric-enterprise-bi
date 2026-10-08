@@ -43,12 +43,12 @@ pip install -e ".[dev]"
 ### Step 3: Run the tests
 
 ```bash
-pytest -q  # 200 tests
+pytest -q  # 201 tests
 ```
 
 The tests build the whole lake from synthetic data in a temporary folder, so they need no setup.
 
-**Verify:** the last line reads `200 passed`. (The count is checked against the code by
+**Verify:** the last line reads `201 passed`. (The count is checked against the code by
 `scripts/doc_outputs.py --check`, so it cannot drift from what pytest collects.)
 
 ### Step 4: Run the end-to-end demo
@@ -256,7 +256,7 @@ No F SKU budget yet? Start a Fabric trial in the Fabric portal, copy the trial c
 **Verify:** after you log in as the deploy identity (or any member of the group) the Fabric API
 answers:
 `curl -s -o /dev/null -w "%{http_code}\n" -H "Authorization: Bearer $(az account get-access-token --resource https://api.fabric.microsoft.com --query accessToken -o tsv)" https://api.fabric.microsoft.com/v1/workspaces`
-prints `200`.
+prints `201`.
 
 ### Step 12: Create the Terraform state storage
 

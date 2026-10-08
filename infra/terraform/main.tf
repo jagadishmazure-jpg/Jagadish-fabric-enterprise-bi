@@ -45,7 +45,7 @@ module "keyvault" {
   name                          = module.naming.key_vault
   tenant_id                     = local.tenant_id
   purge_protection_enabled      = var.purge_protection
-  public_network_access_enabled = var.public_network_access
+  public_network_access_enabled = local.kv_purview_public
   secret_reader_principal_ids   = { ingest = azurerm_user_assigned_identity.ingest.principal_id }
 }
 
@@ -96,7 +96,7 @@ module "purview" {
   tags                        = local.tags
   name                        = "${local.n["pview"]}${module.naming.suffix}"
   managed_resource_group_name = "${module.naming.resource_group}-purview-managed"
-  public_network_enabled      = var.public_network_access
+  public_network_enabled      = local.kv_purview_public
   scan_scopes                 = { landing = module.storage.id }
 }
 
@@ -139,4 +139,44 @@ resource "azurerm_consumption_budget_resource_group" "this" {
   lifecycle {
     ignore_changes = [time_period]
   }
+}
+
+# ---- optional private networking for Key Vault and Purview (off by default; not deployed) ----
+locals {
+  # Private networking forces public access off on the two services it fronts.
+  kv_purview_public = var.public_network_access && !var.private_networking
+  pe_targets = merge(
+    { keyvault = { id = module.keyvault.id, group = "vault", zone = "keyvault" } },
+    var.deploy_purview ? {
+      purview-account = { id = module.purview[0].id, group = "account", zone = "purview" }
+      purview-portal  = { id = module.purview[0].id, group = "portal", zone = "purviewstudio" }
+    } : {},
+  )
+}
+
+module "network" {
+  source              = "./modules/private-network"
+  count               = var.private_networking ? 1 : 0
+  resource_group_name = azurerm_resource_group.this.name
+  location            = var.location
+  tags                = local.tags
+  name                = module.naming.vnet
+  dns_zones = {
+    keyvault      = "privatelink.vaultcore.azure.net"
+    purview       = "privatelink.purview.azure.com"
+    purviewstudio = "privatelink.purviewstudio.azure.com"
+  }
+}
+
+module "private_endpoint" {
+  source              = "./modules/private-endpoint"
+  for_each            = var.private_networking ? local.pe_targets : {}
+  resource_group_name = azurerm_resource_group.this.name
+  location            = var.location
+  tags                = local.tags
+  name                = "pe-${each.key}-${module.naming.base}"
+  subnet_id           = module.network[0].pe_subnet_id
+  target_resource_id  = each.value.id
+  group_id            = each.value.group
+  dns_zone_ids        = [module.network[0].zone_ids[each.value.zone]]
 }

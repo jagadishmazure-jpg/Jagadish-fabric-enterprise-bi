@@ -10,7 +10,7 @@
 - **Data that can be trusted:** schema contracts on every table, quality rules with a quarantine instead of silent drops, change-data-capture mirroring of an operational database, and a Purview-style catalog with lineage, owners and sensitivity labels.
 - **A governed "Fabric data agent":** plain-language questions become SQL over the gold model, but only read-only SQL on allowed tables, with row-level security by region, hidden finance columns, masked personal data and a query cost limit. 22 of 22 golden questions are answered correctly and 22 of 22 guardrail cases behave as expected. It is exposed as an **MCP server** and an **A2A agent** so other agents can call it.
 - **AI enrichment:** a scikit-learn demand forecast that beats the naive baseline by 20.5% on WAPE (with a [model card](docs/model-card-demand-forecast.md)), and a Microsoft Foundry ticket classifier harness that removes personal data first and sends manipulated answers to a human.
-- **200 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
+- **201 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
 - **Terraform + Bicep, GitHub Actions deploy:** Fabric capacity, Event Hubs, IoT Hub, storage, Key Vault, Log Analytics and Purview in both tools, smallest SKUs in dev, and a pipeline with OIDC login (no secrets), a Bicep/Terraform choice, dev -> prod approval and Fabric item publishing. It stays switched off until a subscription exists ([docs/deployment.md](docs/deployment.md)).
 
 **Skills demonstrated:** Microsoft Fabric (Lakehouse, Eventhouse/KQL, Eventstream, Mirroring, Direct Lake semantic models, data agents), Power BI / TMDL, Microsoft Purview, Azure Event Hubs, IoT Hub, data modelling (star schema), data quality and contracts, DuckDB, pandas, scikit-learn, Microsoft Foundry, MCP, A2A, Terraform, Bicep, GitHub Actions (OIDC), Python.
@@ -120,7 +120,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"ask_data_a
 ## Test
 
 ```bash
-pytest -q        # 200 tests, offline
+pytest -q        # 201 tests, offline
 make check       # lint, generated-file checks, secrets scan, tests, evals, demo
 make terraform   # fmt, validate and plan tests with mocked providers
 ```
@@ -154,7 +154,8 @@ which is not set.
 - Local stand-ins: Parquet + DuckDB for OneLake and the SQL endpoint, SQLite for the mirrored
   database, a TF-IDF index for the vector store, mocks for the Foundry models.
 - Small golden sets written by the author; a real pilot would grow them from real questions.
-- Planned: private networking, Fabric workspace and semantic model roles generated from the access
+- Built, not deployed: opt-in private networking for Key Vault and Purview (Terraform and Bicep, on in `prod.tfvars`).
+- Planned: private networking for the other services, Fabric workspace and semantic model roles generated from the access
   policy, alert rules, forecast drift monitoring and a DR plan. See
   [docs/best-practices.md](docs/best-practices.md).
 

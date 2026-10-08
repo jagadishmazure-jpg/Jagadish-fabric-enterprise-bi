@@ -41,6 +41,9 @@ param logDailyQuotaGb int = 1
 
 param purgeProtection bool = false
 
+@description('Opt-in: VNet with an NSG-protected private-endpoint subnet, private endpoints for Key Vault and (when deployed) Purview account + portal, public access off on both. Off by default to keep the demo cheap.')
+param privateNetworking bool = false
+
 param tags object = {
   env: environmentName
   owner: 'jagadish.meduri'
@@ -51,6 +54,9 @@ param tags object = {
 }
 
 var base = '${workload}-${environmentName}-${regionShort}-${instance}'
+var kvName = take('kv-${workload}-${environmentName}-${instance}', 24)
+var purviewName = 'pview-${base}'
+var kvPurviewAccess = privateNetworking ? 'Disabled' : 'Enabled'
 var alnum = toLower(replace('${workload}${environmentName}${regionShort}${instance}', '-', ''))
 
 resource ingestIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -75,10 +81,11 @@ module keyVault 'modules/keyvault.bicep' = {
   params: {
     location: location
     tags: tags
-    name: take('kv-${workload}-${environmentName}-${instance}', 24)
+    name: kvName
     purgeProtection: purgeProtection
     readerPrincipalId: ingestIdentity.properties.principalId
     logAnalyticsId: monitoring.outputs.logAnalyticsId
+    publicNetworkAccess: kvPurviewAccess
   }
 }
 
@@ -123,11 +130,51 @@ module purview 'modules/purview.bicep' = if (deployPurview) {
   params: {
     location: location
     tags: tags
-    name: 'pview-${base}'
+    name: purviewName
     managedResourceGroupName: 'rg-${base}-purview-managed'
     storageAccountName: storage.outputs.name
+    publicNetworkAccess: kvPurviewAccess
   }
 }
+
+// ---- optional private networking for Key Vault and Purview (off by default; not deployed) ----
+module network 'modules/network.bicep' = if (privateNetworking) {
+  name: 'network'
+  params: {
+    location: location
+    tags: tags
+    name: 'vnet-${base}'
+    dnsZones: [
+      { key: 'keyvault', zone: 'privatelink.vaultcore.azure.net' }
+      { key: 'purview', zone: 'privatelink.purview.azure.com' }
+      { key: 'purviewstudio', zone: 'privatelink.purviewstudio.azure.com' }
+    ]
+  }
+}
+
+var peTargets = concat(
+  [{ name: 'keyvault', id: resourceId('Microsoft.KeyVault/vaults', kvName), group: 'vault', zone: 'keyvault' }],
+  deployPurview
+    ? [
+        { name: 'purview-account', id: resourceId('Microsoft.Purview/accounts', purviewName), group: 'account', zone: 'purview' }
+        { name: 'purview-portal', id: resourceId('Microsoft.Purview/accounts', purviewName), group: 'portal', zone: 'purviewstudio' }
+      ]
+    : []
+)
+
+module privateEndpoints 'modules/private-endpoint.bicep' = [for pe in (privateNetworking ? peTargets : []): {
+  name: 'pe-${pe.name}'
+  params: {
+    location: location
+    tags: tags
+    name: 'pe-${pe.name}-${base}'
+    subnetId: network!.outputs.peSubnetId
+    targetResourceId: pe.id
+    groupId: pe.group
+    dnsZoneIds: [network!.outputs.zoneIds[pe.zone]]
+  }
+  dependsOn: [keyVault, purview]
+}]
 
 output AZURE_RESOURCE_GROUP string = resourceGroup().name
 output fabricCapacityName string = deployFabricCapacity ? take('fc${alnum}', 63) : ''
@@ -136,5 +183,5 @@ output iotHubName string = streaming.outputs.iotHubName
 output storageAccount string = storage.outputs.name
 output keyVaultName string = keyVault.outputs.name
 output logAnalyticsName string = monitoring.outputs.logAnalyticsName
-output purviewAccount string = deployPurview ? 'pview-${base}' : ''
+output purviewAccount string = deployPurview ? purviewName : ''
 output ingestIdentityClientId string = ingestIdentity.properties.clientId

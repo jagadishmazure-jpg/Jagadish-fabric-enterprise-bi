@@ -12,5 +12,7 @@ Modules used by the root stack.
 | [`storage/`](storage/) | ADLS Gen2 landing storage |
 | [`fabric-capacity/`](fabric-capacity/) | Fabric capacity |
 | [`purview/`](purview/) | Purview account |
+| [`private-network/`](private-network/) | Only when `private_networking = true`: VNet, private-endpoint subnet with an NSG, private DNS zones linked to the VNet |
+| [`private-endpoint/`](private-endpoint/) | Private endpoints with DNS zone groups for Key Vault and the Purview account and portal |
 
 Guide: [infrastructure.md](../../../docs/infrastructure.md).

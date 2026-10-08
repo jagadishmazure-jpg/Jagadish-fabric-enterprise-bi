@@ -4,6 +4,9 @@ param tags object
 param name string
 param managedResourceGroupName string
 param storageAccountName string
+@description('Disabled when private networking puts the account and portal behind private endpoints.')
+@allowed(['Enabled', 'Disabled'])
+param publicNetworkAccess string = 'Enabled'
 
 var blobReader = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
 
@@ -14,7 +17,7 @@ resource pv 'Microsoft.Purview/accounts@2021-12-01' = {
   identity: { type: 'SystemAssigned' }
   properties: {
     managedResourceGroupName: managedResourceGroupName
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: publicNetworkAccess
   }
 }
 
@@ -32,4 +35,5 @@ resource scan 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
+output id string = pv.id
 output name string = pv.name

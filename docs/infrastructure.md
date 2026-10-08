@@ -128,6 +128,7 @@ A plan test:
 | `deploy_purview` | `deployPurview` | Purview |
 | `log_daily_quota_gb`, `log_retention_days` | `logDailyQuotaGb` | Monitoring |
 | `purge_protection`, `public_network_access` | `purgeProtection` | Hardening |
+| `private_networking` (default `false`; `true` in `prod.tfvars`) | `privateNetworking` (default `false`) | Private endpoints for Key Vault and Purview |
 | `monthly_budget`, `budget_contact_emails` | none | Budget (Terraform only) |
 
 Outputs (same names in both): `AZURE_RESOURCE_GROUP`, `fabricCapacityName`,
@@ -219,8 +220,15 @@ afterwards with the Fabric REST API and fabric-cicd ([fabric-items.md](fabric-it
 ## Limitations
 
 - Never applied to a subscription; only validated, tested with mocked providers and scanned.
-- No private endpoints, VNet or managed private endpoints for Fabric yet; public network access
-  stays on with Entra-only auth.
+- Private networking is optional and covers Key Vault and Purview only. With
+  `private_networking = true` (Bicep `privateNetworking`) both tools add a VNet, a
+  private-endpoint subnet behind an NSG, private DNS zones (`privatelink.vaultcore.azure.net`,
+  `privatelink.purview.azure.com`, `privatelink.purviewstudio.azure.com`) and private endpoints for
+  the vault and the Purview account and portal, and turn public network access off on both.
+  Public stays the default; `prod.tfvars` turns it on. Built and plan-tested offline, never deployed.
+- Not covered by that option: Purview ingestion private endpoints and the managed VNet
+  integration runtime, Event Hubs, IoT Hub and the landing storage account, and managed private
+  endpoints from Fabric. Those keep public network access with Entra-only auth.
 - Bicep has no budget resource; the budget exists only in Terraform.
 - No Foundry project, alert rules or action groups in the IaC yet.
 - Fabric tenant settings, workspace roles and OneLake security are not IaC.

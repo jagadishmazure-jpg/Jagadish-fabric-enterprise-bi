@@ -79,6 +79,7 @@ another's.
 
 * The SQL guard is a parser-based allow-list over DuckDB; Fabric SQL endpoints have their own dialect
   and must be re-tested there.
-* Key Vault, Purview, Event Hubs and IoT Hub settings are IaC only; private networking is an option,
-  not the default.
+* Key Vault, Purview, Event Hubs and IoT Hub settings are IaC only and never deployed. Private
+  networking is an opt-in for Key Vault and Purview (on in `prod.tfvars`, off by default); Event
+  Hubs, IoT Hub, storage and Fabric itself keep public endpoints with Entra-only auth.
 * The model is a deterministic mock; real-model behaviour under attack is untested.

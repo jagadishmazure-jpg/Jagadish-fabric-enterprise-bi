@@ -1,5 +1,6 @@
 # prod: sized from docs/cost-estimate.md (assumed load), Standard Event Hubs with a dedicated
-# Eventstream consumer group, S1 IoT Hub, zone-redundant storage, Purview on, purge protection on.
+# Eventstream consumer group, S1 IoT Hub, zone-redundant storage, Purview on, purge protection on,
+# Key Vault and Purview behind private endpoints (private_networking).
 environment            = "prod"
 location               = "eastus2"
 instance               = "001"
@@ -17,3 +18,4 @@ monthly_budget         = 2000
 budget_contact_emails  = []
 purge_protection       = true
 public_network_access  = true
+private_networking     = true

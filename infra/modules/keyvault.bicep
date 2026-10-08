@@ -5,6 +5,9 @@ param name string
 param purgeProtection bool = false
 param readerPrincipalId string
 param logAnalyticsId string
+@description('Disabled when private networking puts the vault behind a private endpoint.')
+@allowed(['Enabled', 'Disabled'])
+param publicNetworkAccess string = 'Enabled'
 
 var secretsUser = '4633458b-17de-408a-b874-0445c86b69e6'
 
@@ -19,8 +22,8 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
     enablePurgeProtection: purgeProtection ? true : null
-    publicNetworkAccess: 'Enabled'
-    networkAcls: { bypass: 'AzureServices', defaultAction: 'Allow' }
+    publicNetworkAccess: publicNetworkAccess
+    networkAcls: { bypass: 'AzureServices', defaultAction: publicNetworkAccess == 'Enabled' ? 'Allow' : 'Deny' }
   }
 }
 

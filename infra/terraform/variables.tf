@@ -123,7 +123,13 @@ variable "purge_protection" {
 }
 
 variable "public_network_access" {
-  description = "Public endpoints with Entra ID auth in dev; prod turns this off and adds private endpoints (planned)."
+  description = "Public endpoints with Entra ID auth (dev default). For Key Vault and Purview, private_networking turns this off and adds private endpoints."
   type        = bool
   default     = true
+}
+
+variable "private_networking" {
+  description = "VNet with an NSG-protected private-endpoint subnet, private endpoints for Key Vault and (when deployed) Purview account + portal, public access off on both. Off by default to keep the demo cheap."
+  type        = bool
+  default     = false
 }
