@@ -1,0 +1,4 @@
+# gitleaks false positives, one fingerprint (commit:file:rule:line) per line.
+# Each was checked by hand; nothing here is a real credential.
+# infra/modules/keyvault.bicep:9 (generic-api-key): public Azure built-in role definition ID (Key Vault Secrets User), not a secret
+516c377cbf8321b8167f953597b62e370ffe775f:infra/modules/keyvault.bicep:generic-api-key:9
