@@ -168,14 +168,16 @@ def make_server(agent: A2AAgent, host: str = "127.0.0.1", port: int = 0) -> Thre
 
         def do_POST(self):
             if self.path != "/a2a":
-                return self._send(404, {"error": "not found"})
+                self._send(404, {"error": "not found"})
+                return
             n = int(self.headers.get("content-length", 0))
             try:
                 body = json.loads(self.rfile.read(n) or b"{}")
             except json.JSONDecodeError:
-                return self._send(
+                self._send(
                     400, {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "parse error"}}
                 )
+                return
             code, obj = agent.handle(body, dict(self.headers))
             self._send(code, obj)
 
