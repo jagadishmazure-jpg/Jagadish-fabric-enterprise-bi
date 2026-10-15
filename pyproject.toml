@@ -10,16 +10,16 @@ requires-python = ">=3.11"
 # scripts/publish_fabric_items.py needs fabric-cicd and azure-identity, installed by deploy.yml only.
 dependencies = [
   "pandas==3.0.6",
-  "pyarrow==25.0.1",
+  "pyarrow==26.0.0",
   "duckdb==1.5.6",
   "numpy==2.5.3",
   "scikit-learn==1.9.1",
   "pyyaml==6.0.3",
-  "sqlglot==30.21.0",
+  "sqlglot==30.22.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==9.1.1", "ruff==0.16.10"]
+dev = ["pytest==9.1.1", "ruff==0.17.0"]
 
 [build-system]
 requires = ["hatchling"]
