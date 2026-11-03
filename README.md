@@ -28,9 +28,6 @@ build agents and the integration layer around them; this one builds the governed
 underneath: one lake, a fast path for what is happening now, a careful path for what happened,
 and a single serving layer with the same rules for a Power BI report and an AI agent.
 
-Inspired by Microsoft's Fabric enterprise BI reference patterns. The design, names, data and code
-here are my own.
-
 ## Architecture
 
 ```mermaid

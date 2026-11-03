@@ -2,8 +2,7 @@
 
 The build follows the shape most Fabric analytics estates converge on: land everything in one
 lake, keep a fast path for what is happening now and a careful path for what happened, and put
-one governed serving layer in front of people and agents. Inspired by Microsoft's Fabric
-enterprise BI reference patterns; the design, names and code here are my own.
+one governed serving layer in front of people and agents.
 
 This page is the overview. Each component has its own page (see the [docs index](README.md)), and
 the [implementation guide](implementation-guide.md) walks through running and deploying it.
