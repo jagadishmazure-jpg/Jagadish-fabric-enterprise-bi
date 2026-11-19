@@ -34,6 +34,7 @@ observability, failure modes, the mapping to the real Fabric or Azure service, a
 | [`fabric-items.md`](fabric-items.md) | Lakehouse, Eventhouse, KQL database, notebooks and semantic model as Git-format items |
 | [`infrastructure.md`](infrastructure.md) | Bicep and Terraform twins, environment profiles, validation output |
 | [`deployment.md`](deployment.md) | The four GitHub Actions workflows, OIDC, dev to prod, the deploy script |
+| [`ignite-2026.md`](ignite-2026.md) | HorizonDB mirroring, a Fabric app on the semantic model, and a Fabric IQ tool with row-level security |
 
 ## Generated and reference
 

@@ -25,6 +25,7 @@ COMPONENT_DOCS = [
     "fabric-items.md",
     "infrastructure.md",
     "deployment.md",
+    "ignite-2026.md",
 ]
 REQUIRED_SECTIONS = [
     "## Architecture",
