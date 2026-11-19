@@ -10,16 +10,17 @@
 - **Data that can be trusted:** schema contracts on every table, quality rules with a quarantine instead of silent drops, change-data-capture mirroring of an operational database, and a Purview-style catalog with lineage, owners and sensitivity labels.
 - **A governed "Fabric data agent":** plain-language questions become SQL over the gold model, but only read-only SQL on allowed tables, with row-level security by region, hidden finance columns, masked personal data and a query cost limit. 22 of 22 golden questions are answered correctly and 22 of 22 guardrail cases behave as expected. It is exposed as an **MCP server** and an **A2A agent** so other agents can call it.
 - **AI enrichment:** a scikit-learn demand forecast that beats the naive baseline by 20.5% on WAPE (with a [model card](docs/model-card-demand-forecast.md)), and a Microsoft Foundry ticket classifier harness that removes personal data first and sends manipulated answers to a human.
-- **201 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
+- **Ignite 2026 patterns, offline:** a HorizonDB-to-OneLake mirror with a mock PostgreSQL source and incremental loads, a Fabric app whose pages are the semantic model, and a Fabric IQ-style tool that answers as the caller and cannot see another region's rows. Sources and the guide are in [Ignite 2026](#ignite-2026-horizondb-fabric-apps-and-fabric-iq).
+- **216 automated tests**, seven eval gates and an end-to-end demo run in CI on every push.
 - **Terraform + Bicep, GitHub Actions deploy:** Fabric capacity, Event Hubs, IoT Hub, storage, Key Vault, Log Analytics and Purview in both tools, smallest SKUs in dev, and a pipeline with OIDC login (no secrets), a Bicep/Terraform choice, dev -> prod approval and Fabric item publishing. It stays switched off until a subscription exists ([docs/deployment.md](docs/deployment.md)).
 
-**Skills demonstrated:** Microsoft Fabric (Lakehouse, Eventhouse/KQL, Eventstream, Mirroring, Direct Lake semantic models, data agents), Power BI / TMDL, Microsoft Purview, Azure Event Hubs, IoT Hub, data modelling (star schema), data quality and contracts, DuckDB, pandas, scikit-learn, Microsoft Foundry, MCP, A2A, Terraform, Bicep, GitHub Actions (OIDC), Python.
+**Skills demonstrated:** Microsoft Fabric (Lakehouse, Eventhouse/KQL, Eventstream, Mirroring, Direct Lake semantic models, data agents, Fabric apps, Fabric IQ), Fabric HorizonDB, Power BI / TMDL, Microsoft Purview, Azure Event Hubs, IoT Hub, data modelling (star schema), data quality and contracts, DuckDB, pandas, scikit-learn, Microsoft Foundry, MCP, A2A, Terraform, Bicep, GitHub Actions (OIDC), Python.
 
 *Honesty note: everything runs offline on synthetic data, with local Parquet and DuckDB standing in for OneLake and a deterministic mock in place of the Foundry model. Nothing has been deployed to Azure or a Fabric tenant yet (see [Limits](#limits)).*
 
 **Start here:** [implementation guide](docs/implementation-guide.md) (clean clone to full demo, then to a real Fabric and Azure deployment).
 
-**Contents:** [What](#at-a-glance-for-recruiters) · [Why](#why-it-exists) · [Architecture](#architecture) · [Portfolio](#how-it-fits-the-portfolio) · [Run](#run-it-about-a-minute) · [Test](#test) · [Deploy](#deploy) · [Limits](#limits) · [Docs](#documentation)
+**Contents:** [What](#at-a-glance-for-recruiters) · [Why](#why-it-exists) · [Architecture](#architecture) · [Ignite 2026](#ignite-2026-horizondb-fabric-apps-and-fabric-iq) · [Portfolio](#how-it-fits-the-portfolio) · [Run](#run-it-about-a-minute) · [Test](#test) · [Deploy](#deploy) · [Limits](#limits) · [Docs](#documentation)
 
 ## Why it exists
 
@@ -84,7 +85,26 @@ flowchart LR
 | Fabric items | Lakehouse, Eventhouse, KQL database, PySpark notebooks and semantic model, in Fabric Git format | [`fabric/workspace/`](fabric/workspace/README.md) |
 
 Component docs (each covers purpose, design, key files, code excerpts, configuration, local run with real output, tests, security, observability, failure modes, the real Fabric or Azure mapping and limits):
-[architecture](docs/architecture.md) · [domain](docs/domain.md) · [cold path](docs/cold-path.md) · [hot path](docs/hot-path.md) · [Lambda view](docs/lambda-view.md) · [enrichment](docs/enrichment.md) · [semantic model](docs/semantic-model.md) · [data agent](docs/data-agent.md) · [MCP and A2A](docs/agent-interfaces.md) · [governance](docs/governance.md) · [observability](docs/observability.md) · [FinOps](docs/finops.md) · [KQL](docs/kql.md) · [Fabric items](docs/fabric-items.md) · [infrastructure](docs/infrastructure.md) · [deployment](docs/deployment.md).
+[architecture](docs/architecture.md) · [domain](docs/domain.md) · [cold path](docs/cold-path.md) · [hot path](docs/hot-path.md) · [Lambda view](docs/lambda-view.md) · [enrichment](docs/enrichment.md) · [semantic model](docs/semantic-model.md) · [data agent](docs/data-agent.md) · [MCP and A2A](docs/agent-interfaces.md) · [governance](docs/governance.md) · [observability](docs/observability.md) · [FinOps](docs/finops.md) · [KQL](docs/kql.md) · [Fabric items](docs/fabric-items.md) · [infrastructure](docs/infrastructure.md) · [deployment](docs/deployment.md) · [Ignite 2026](docs/ignite-2026.md).
+
+## Ignite 2026: HorizonDB, Fabric apps, and Fabric IQ
+
+Three announcements from Ignite 2026, demonstrated here on mocks. Prices, capacity, region lists and size limits are not stated in the posts below, so this repo states none. Details the posts leave unpublished are marked [verify] in [docs/ignite-2026.md](docs/ignite-2026.md).
+
+| Announcement | What the posts say | What this repo runs offline |
+|---|---|---|
+| Azure HorizonDB, generally available, and Fabric HorizonDB, preview | Azure HorizonDB is the managed PostgreSQL service. Fabric HorizonDB is serverless PostgreSQL: it provisions in seconds, pauses after five minutes of inactivity, and mirrors tables into OneLake as Delta by default | [`HorizonSource`](src/fabricbi/ignite/horizondb.py) plus an incremental replica checked against [`mirror.horizondb_loyalty_redemption.yaml`](contracts/schemas/mirror.horizondb_loyalty_redemption.yaml) |
+| Fabric apps, generally available | Apps connect to existing semantic models, warehouses and lakehouses and keep those access controls. Rayfin is the SDK | [`RetailReviewApp`](src/fabricbi/ignite/fabric_app.py) pages are query plans over the retail semantic model, executed as the caller |
+| Fabric IQ | Data agents answer from governed business definitions. Fabric permissions, including row and column limits, stay with the caller | [`FabricIqTool`](src/fabricbi/ignite/fabric_iq.py) `ask_business_question`, with tests that a West caller cannot read North rows |
+
+Official sources:
+
+- [What's new in databases at Microsoft Ignite 2026](https://techcommunity.microsoft.com/blog/azuresqlblog/whats-new-in-databases-at-microsoft-ignite-2026-ai-ready-data-for-apps-and-agent/4570764) on the Azure SQL blog (techcommunity.microsoft.com).
+- [Build and operate intelligent apps with Microsoft Fabric: New capabilities at Ignite 2026](https://community.fabric.microsoft.com/t5/Fabric-Updates-Blog/Build-and-operate-intelligent-apps-with-Microsoft-Fabric-New/ba-p/5423020) on the Fabric Updates Blog.
+- [Build governed data apps with Microsoft Fabric Apps (Generally Available)](https://community.fabric.microsoft.com/t5/Fabric-Updates-Blog/Build-governed-data-apps-with-Microsoft-Fabric-Apps-Generally/ba-p/5423011) on the Fabric Updates Blog.
+- [Bringing trusted Fabric IQ context to wherever people and agents work](https://community.fabric.microsoft.com/t5/Fabric-Updates-Blog/Bringing-trusted-Fabric-IQ-context-to-wherever-people-and-agents/ba-p/5423049) on the Fabric Updates Blog.
+
+Guide: [docs/ignite-2026.md](docs/ignite-2026.md).
 
 ## How it fits the portfolio
 
@@ -117,7 +137,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"ask_data_a
 ## Test
 
 ```bash
-pytest -q        # 201 tests, offline
+pytest -q        # 216 tests, offline
 make check       # lint, generated-file checks, secrets scan, tests, evals, demo
 make terraform   # fmt, validate and plan tests with mocked providers
 ```
@@ -149,7 +169,7 @@ which is not set.
 - Not deployed: the notebooks, KQL and semantic model have not run on a Fabric capacity, and the
   Terraform and Bicep have only been validated, not applied.
 - Local stand-ins: Parquet + DuckDB for OneLake and the SQL endpoint, SQLite for the mirrored
-  database, a TF-IDF index for the vector store, mocks for the Foundry models.
+  database and for the HorizonDB source, a TF-IDF index for the vector store, mocks for the Foundry models.
 - Small golden sets written by the author; a real pilot would grow them from real questions.
 - Built, not deployed: opt-in private networking for Key Vault and Purview (Terraform and Bicep, on in `prod.tfvars`).
 - Planned: private networking for the other services, Fabric workspace and semantic model roles generated from the access
@@ -163,6 +183,7 @@ which is not set.
 | [`docs/`](docs/README.md) | Index of every component doc |
 | [`docs/implementation-guide.md`](docs/implementation-guide.md) | Step-by-step: clean clone to demo, then a real Fabric and Azure deployment |
 | [`docs/best-practices.md`](docs/best-practices.md) | What is implemented, written but not deployed, or planned |
+| [`docs/ignite-2026.md`](docs/ignite-2026.md) | HorizonDB mirror, Fabric app, and Fabric IQ tool, with the official source links |
 | [`docs/adr/`](docs/adr/README.md) | Six architecture decision records |
 | [`SECURITY.md`](SECURITY.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CHANGELOG.md`](CHANGELOG.md) | Policies and change history |
 
