@@ -440,6 +440,54 @@ def kql() -> None:
 
 
 @example
+def ignite() -> None:
+    from fabricbi.ignite.fabric_app import RetailReviewApp
+    from fabricbi.ignite.fabric_iq import FabricIqTool
+    from fabricbi.ignite.horizondb import DEMO_ROWS, HorizonMirror, HorizonSource
+
+    tmp = Path(tempfile.mkdtemp(prefix="fabricbi-ignite-"))
+    source = HorizonSource(tmp / "horizondb.db")
+    source.seed_demo()
+    mirror = HorizonMirror(tmp / "lake")
+    first = mirror.sync(source)
+    print(
+        f"horizon mirror: initial applied {first.applied} inserts {first.inserts} replica {first.rows} lag {mirror.lag(source)}"
+    )
+    replay = mirror.sync(source)
+    print(f"horizon mirror: replay applied {replay.applied} lag {mirror.lag(source)}")
+    source.insert(
+        {
+            "redemption_id": "R-104",
+            "store_id": "S001",
+            "region": "West",
+            "member_id": "C00014",
+            "points": 5,
+            "redeemed_on": "D03",
+        }
+    )
+    incremental = mirror.sync(source)
+    print(
+        f"horizon mirror: incremental applied {incremental.applied} inserts {incremental.inserts} replica {incremental.rows} lag {mirror.lag(source)}"
+    )
+    source.close()
+
+    lake = get_run().lake
+    app = RetailReviewApp(lake)
+    for name in ("exec.viewer", "west.manager"):
+        page = app.open_page("regional_review", _who(name))
+        regions = [row[0] for row in page.rows]
+        print(f"app regional_review as {name}: regions {regions}")
+    iq = FabricIqTool(lake)
+    for name in ("west.manager", "north.manager"):
+        answer = iq.call(f"{name}@fernhill.example", "Net sales by region")
+        regions = [row[0] for row in answer["rows"]]
+        print(f"iq {name}: {answer['status']} regions {regions}")
+    hidden = iq.call(f"{_who('west.manager').subject}", "Net sales by region in the North")
+    print(f"iq west.manager asked for North: {hidden['status']} regions {[row[0] for row in hidden['rows']]}")
+    print(f"demo source rows: {len(DEMO_ROWS)}")
+
+
+@example
 def fabric_items() -> None:
     from fabricbi.paths import FABRIC_DIR
 

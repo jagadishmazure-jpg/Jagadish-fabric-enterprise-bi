@@ -18,10 +18,11 @@ temporary folder (about five seconds), and every test reads from that run.
 | [`test_09_governance_ops.py`](test_09_governance_ops.py) | Catalog, lineage, labels, data products, vector store, SLOs, telemetry, capacity sizing |
 | [`test_10_repo.py`](test_10_repo.py) | Generated files current, Fabric items, eval gates, folder READMEs, no dates, links, workflow gates, workflow supply-chain guard (pinned actions, permissions, gitleaks, CodeQL, Dependabot), Key Vault and Purview private networking parity between Terraform and Bicep |
 | [`test_11_docs.py`](test_11_docs.py) | Every component guide exists, is indexed and has the required sections; code excerpts are copied from the source; pasted outputs and test counts are current; no placeholders; the implementation guide verifies every step |
+| [`test_12_ignite.py`](test_12_ignite.py) | HorizonDB incremental mirror and schema contract; Fabric app pages on the semantic model; Fabric IQ tool row-level security across regions |
 
 Run:
 
 ```bash
-pytest -q  # 201 tests
+pytest -q  # 216 tests
 pytest -q tests/test_07_semantic_agent.py -k guardrail   # one area
 ```

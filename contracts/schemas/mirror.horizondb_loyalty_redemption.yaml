@@ -1,0 +1,13 @@
+table: mirror.horizondb_loyalty_redemption
+description: >
+  Replica of the Fabric HorizonDB loyalty_redemptions table. The source is a local
+  SQLite mock of serverless PostgreSQL. Parquet stands in for the Delta table Fabric
+  mirroring would write to OneLake.
+primary_key: [redemption_id]
+columns:
+  - {name: redemption_id, type: string, nullable: false, unique: true}
+  - {name: store_id, type: string, nullable: false}
+  - {name: region, type: string, nullable: false, accepted_values: [North, South, East, West]}
+  - {name: member_id, type: string, nullable: false}
+  - {name: points, type: int, nullable: false, min: 0}
+  - {name: redeemed_on, type: string, nullable: false}

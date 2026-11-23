@@ -20,6 +20,7 @@ Offline implementation of the platform. Each subpackage has its own README and a
 | [`governance/`](governance/) | Catalog, lineage, labels, products |
 | [`observability/`](observability/) | Telemetry and SLOs |
 | [`finops/`](finops/) | Capacity sizing |
+| [`ignite/`](ignite/) | HorizonDB mirror, Fabric app pages, and a Fabric IQ tool |
 
-Run: `python -m fabricbi.examples --list` lists the 18 examples; `python -m fabricbi.examples all`
+Run: `python -m fabricbi.examples --list` lists the 19 examples; `python -m fabricbi.examples all`
 runs them all on one pipeline run.

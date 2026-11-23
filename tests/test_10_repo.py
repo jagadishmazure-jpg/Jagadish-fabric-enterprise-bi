@@ -150,13 +150,25 @@ DATE = re.compile(
 )
 
 
+# Official Ignite write-ups are dated, and their URLs contain the year. Those citation lines are
+# the exception. Every other line in the docs stays undated.
+CITATION = re.compile(
+    r"Ignite 20\d\d|ignite-20\d\d|techcommunity\.microsoft\.com|"
+    r"blog\.fabric\.microsoft\.com|community\.fabric\.microsoft\.com"
+)
+
+
 def test_no_dates_in_docs():
-    hits = [
-        f"{f.relative_to(ROOT)}: {m.group(0)}"
-        for f in _tracked()
-        if f.suffix == ".md" and f.name not in ("CHANGELOG.md",)
-        for m in DATE.finditer(f.read_text())
-    ]
+    hits = []
+    for f in _tracked():
+        if f.suffix != ".md" or f.name == "CHANGELOG.md":
+            continue
+        for line_no, line in enumerate(f.read_text().splitlines(), start=1):
+            if CITATION.search(line):
+                continue
+            m = DATE.search(line)
+            if m:
+                hits.append(f"{f.relative_to(ROOT)}:{line_no}: {m.group(0)}")
     assert hits == []
 
 
